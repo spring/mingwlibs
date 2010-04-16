@@ -1,0 +1,209 @@
+Binary files reimp_orig/bin/reimp.exe and reimp/bin/reimp.exe differ
+Only in reimp_orig: reimp
+diff -r -u reimp_orig/src/Makefile reimp/src/Makefile
+--- reimp_orig/src/Makefile	Thu Aug 12 15:47:44 1999
++++ reimp/src/Makefile	Fri Dec 21 11:12:34 2001
+@@ -1,8 +1,8 @@
+ CC = gcc -o $@
+ #CC = cl -nologo
+ 
+-CFLAGS = -g -I.
+-#CFLAGS = -I.
++#CFLAGS = -g -I.
++CFLAGS = -O2 -I.
+ 
+ # .exe suffix
+ X = .exe
+diff -r -u reimp_orig/src/ar.c reimp/src/ar.c
+--- reimp_orig/src/ar.c	Thu Aug 12 15:47:44 1999
++++ reimp/src/ar.c	Wed Dec  5 13:55:20 2001
+@@ -9,6 +9,7 @@
+ ar_read_header (struct ar_hdr *hdr, FILE *f)
+ {
+   size_t size;
++  //fseek(f, (ftell(f) + 1) & ~1, SEEK_SET);	// or should it be fixed here?
+   if (fread (hdr, sizeof (*hdr), 1, f) == 1)
+     {
+       if (memcmp (ARFMAG, hdr->ar_fmag, 2) != 0)
+diff -r -u reimp_orig/src/reimp.c reimp/src/reimp.c
+--- reimp_orig/src/reimp.c	Thu Aug 12 16:21:58 1999
++++ reimp/src/reimp.c	Fri Dec 21 11:15:36 2001
+@@ -104,7 +104,7 @@
+ 
+   if (only_symbols)
+     {
+-      /* if we only dump symbols there is no need to read the offset 
++      /* if we only dump symbols there is no need to read the offset
+        * and index tables */
+       if (fseek (f, 4 * n_memb, SEEK_CUR) != 0)
+         return 0;
+@@ -138,7 +138,7 @@
+         }
+     }
+ 
+-  
++
+   /* calculate size of symbol string table */
+   n = strtol (hdr->ar_size, NULL, 10);
+   n = n - (4 + 4 + 2 * n_syms + 4 * n_memb);
+@@ -176,7 +176,7 @@
+   free (buf);
+   free (ofs);
+   free (idx);
+-            
++
+   return 1;
+ }
+ 
+@@ -224,7 +224,7 @@
+ {
+   char *p;
+   struct def_file *df = xmalloc (sizeof (*df));
+-  
++
+   df->left = df->right = NULL;
+ 
+   /* open .def file */
+@@ -312,40 +312,65 @@
+   FILE *fo;
+   int to_read;
+   int r;
+-  char *p;
+-  
+-  sprintf (buf, "%s.o", name);
++  char *p, *q;
+ 
+-  p = strchr (buf, '/');
+-  if (!p)
+-    p = strchr (buf, '\\');
++  strncpy (buf, name, sizeof(buf));
+ 
+-  if (p)
++  /* remove trailing slash */
++  p = buf + strlen(buf) - 1;
++  if(*p == '/')
++      *p = '\0';
++
++#if 0
++  /* make parent directories */
++  q = buf;
++  while((p = strchr (q, '/')) || (p = strchr (q, '\\')))
+     {
+       *p = '\0';
+ #ifdef _WIN32
+       mkdir (buf);
+ #else
+-      mkdir (buf, I_READ | I_WRITE | I_EXEC);
++      mkdir (buf, S_IRWXUGO);
+ #endif
++        printf("%s\n", buf);
+       *p = '/';
++      q = p + 1;
+     }
++#else
++  /* strip base directory */
++  q = buf;
++  while((p = strchr (q, '/')) || (p = strchr (q, '\\')))
++    {
++      q = p + 1;
++    }
++  strncpy (buf, q, sizeof(buf));
++#endif
+ 
+   fo = fopen (buf, "wb");
+ 
+   if (!fo)
+-    error (1, buf);
+-  
+-  to_read = size;
++  {
++    warning (1, name);
++    return;
++  }
++
+   do
+     {
+       if (size < sizeof (buf))
+         to_read = size;
++      else
++        to_read = sizeof (buf);
+       if (fread (buf, to_read, 1, f) != 1)
+-        error (0, "unexpected end-of-file\n");
++      {
++        warning (0, "unexpected end-of-file\n");
++        break;
++      }
+       r = fwrite (buf, to_read, 1, fo);
+       if (r != 1)
+-        error (0, "error writing to file\n");
++      {
++        warning (0, "error writing to file\n");
++        break;
++      }
+       size -= to_read;
+     }
+   while (size);
+@@ -387,7 +412,7 @@
+         }
+       return;
+     }
+-  
++
+   sym = buf = xmalloc (imp_hdr.size);
+   if (fread (buf, imp_hdr.size, 1, f) != 1)
+     {
+@@ -425,7 +450,7 @@
+   write_def (dll, sym, ord, imp_flags[0] ? imp_flags : NULL);
+ 
+   free (buf);
+-  
++
+   return 1;
+ }
+ 
+@@ -580,6 +605,7 @@
+     goto invalid_ar;
+ 
+   ofs = strtoul (ar_hdr.ar_size, NULL, 10);
++  ofs = (ofs + 1) & ~1; // fix alignment here
+   if (fseek (ar, ofs, SEEK_CUR) != 0)
+     error (1, ar_name);
+ 
+diff -r -u reimp_orig/src/reimp.h reimp/src/reimp.h
+--- reimp_orig/src/reimp.h	Thu Aug 12 15:47:44 1999
++++ reimp/src/reimp.h	Fri Dec 21 11:16:50 2001
+@@ -80,6 +80,7 @@
+ int begins (char *, char *);
+ 
+ void *xmalloc ();
++void warning (int , char *, ...);
+ void error (int , char *, ...);
+ 
+ extern char *program_name;
+diff -r -u reimp_orig/src/util.c reimp/src/util.c
+--- reimp_orig/src/util.c	Thu Aug 12 15:47:44 1999
++++ reimp/src/util.c	Wed Dec  5 13:55:20 2001
+@@ -19,6 +19,23 @@
+ }
+ 
+ 
++/* report warning and terminate */
++void
++warning (int perr, char *s, ...)
++{
++  va_list args;
++
++  fprintf (stderr, "%s: ", program_name);
++  if (!perr)
++    {
++      va_start (args, s);
++      vfprintf (stderr, s, args);
++      va_end (args);
++    }
++  else
++    perror (s);
++}
++
+ /* report error and terminate */
+ void
+ error (int perr, char *s, ...)
