@@ -56,6 +56,8 @@ _CMake_
 
 ### Notes for maintainers
 
+#### Creating MinGW32 import libraries
+
 Also included is `reimp_new.zip`, this contains `reimp.exe` which has been
 used to create MinGW32 import libraries for `DevIL.dll`, `ILU.dll` and `ILUT.dll`:
 
@@ -96,7 +98,79 @@ should be picked up automatically because of the order of the include paths,
 ie. `mingwlibs/include` takes precedence over `%MINGDIR%/include`.
 It can be foudn in from `w32api-3.9` on <http://www.mingw.org>.
 
+#### Cross-Compiling Boost
 
+Download [the latest boost sources archive](http://www.boost.org/users/download/).
+
+The following instructions outline the basic procedure,
+and they worked for boost 1.42.0.
+Due to the nature of boost, it is very likely these steps will have to be adapted
+in-between versions.
+
+	BOOST_VERSION=1_42_0
+	BOOST_LIBS="thread system filesystem regex program_options signals"
+	BOOST_HEADERS="thread system filesystem regex program_options signals format ptr_container spirit algorithm date_time asio"
+	BOOST_CONF=~/user-config.jam
+
+	# Setting system dependent vars
+	BOOST_BUILD_DIR=/tmp/build-boost
+	MINGWLIBS_DIR=~/Projects/spring/var/mingwlibs
+	# x86 or x86_64
+	HOST_ARCH=$(uname -m)
+	MINGW_GPP=i686-mingw32-g++
+	MINGW_RANLIB=i686-mingw32-ranlib
+
+	tar xfj boost_${BOOST_VERSION}.tar.bz2
+	cd boost_${BOOST_VERSION}/
+
+	# Backing up Jam config file, if one exists
+	cp ${BOOST_CONF} ${BOOST_CONF}_BAK 2> /dev/null
+
+	# Building bjam - the preferred Boost build tool
+	cd tools/jam
+	sh ./build_dist.sh
+	cp stage/bin.linux${HOST_ARCH}/bjam ../..
+	cd ../..
+
+	# Building the required libraries
+	echo "using gcc : : ${MINGW_GPP} ;" >> ${BOOST_CONF}
+	./bjam \
+		--build-dir=${BOOST_BUILD_DIR} \
+		target-os=windows \
+		threadapi=win32 \
+		threading=multi \
+		link=static \
+		toolset=gcc \
+		${BOOST_LIBS}
+
+	# Copying the libraries to MinGW-libs
+	for f in $(find ${BOOST_BUILD_DIR}/ -name "*.lib"); do cp "$f" "${MINGWLIBS_DIR}/lib/$(basename "$f" | sed -e 's/_win32//' | sed -e 's/\.lib$/-mt\.a/')"; done
+
+	# Adding symbol tables to the libs (this should not be required anymore in boost 1.43+)
+	for f in $(ls ${MINGWLIBS_DIR}/lib/libboost_*.a); do ${MINGW_RANLIB} "$f"; done
+
+	# Building bcp - boosts own filtering tool
+	rm ${BOOST_CONF}
+	cd tools/bcp
+	../../bjam --build-dir=${BOOST_BUILD_DIR}
+	cd ../..
+	cp $(ls ${BOOST_BUILD_DIR}/boost/*/tools/bcp/*/*/*/bcp) .
+
+	# Copying the headers to MinGW-libs
+	rm -Rf ${MINGWLIBS_DIR}/include/boost
+	# "all of them"
+	#cp -r ./boost ${MINGWLIBS_DIR}/include/
+	# Filtering
+	mkdir ${BOOST_BUILD_DIR}/filtered
+	./bcp ${BOOST_HEADERS} ${BOOST_BUILD_DIR}/filtered
+	cp -r ${BOOST_BUILD_DIR}/filtered/boost ${MINGWLIBS_DIR}/include/
+
+	# Restoring the Jam config file backup, if one exists
+	cp ${BOOST_CONF}_BAK ${BOOST_CONF} 2> /dev/null
+
+You should now have both the static libs and the headers of the new boost
+version in your mingwlibs dir, and are only left to do the git magic to commit,
+and optionally emntion the new version in the list below.
 
 ### Current versions of included libraries and binaries
 
