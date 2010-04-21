@@ -115,13 +115,14 @@ It can be foudn in from `w32api-3.9` on <http://www.mingw.org>.
 
 	<http://www.bastet.com>
 
-* __Boost__ 1.39.0
+* __Boost__ 1.42.0
 
 	<http://www.boost.org>
 
-	compiled by Auswaschbar, stripped down with:
+	cross-compiled by hoijui with MinGW 4.4.2 on 21. April 2010
 
-		> ./build/bin/bcp thread filesystem regex format ptr_container spirit algorithm date_time /tmp/boost_stripped
+		BOOST_LIBS="thread system filesystem regex program_options signals"
+		BOOST_HEADERS="thread system filesystem regex program_options signals format ptr_container spirit algorithm date_time asio"
 
 * __Devil__ 1.6.8-rc2 (even though the DLL properties say 1.6.5 ...)
 
