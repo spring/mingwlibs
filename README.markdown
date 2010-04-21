@@ -170,7 +170,7 @@ in-between versions.
 
 You should now have both the static libs and the headers of the new boost
 version in your mingwlibs dir, and are only left to do the git magic to commit,
-and optionally emntion the new version in the list below.
+and optionally mention the new version in the list below.
 
 ### Current versions of included libraries and binaries
 
