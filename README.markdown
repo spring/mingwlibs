@@ -218,9 +218,11 @@ and optionally mention the new version in the list below.
 
 	<http://glew.sourceforge.net>
 
-* __SDL__ 1.2.12
+* __SDL__ 1.2.10
 
-	<http://libsdl.org/release/SDL-devel-1.2.12-mingw32.tar.gz>
+	Use SDL 1.2.10 because SDL 1.2.{9,11,12} break keyboard layout.
+
+	<http://libsdl.org/release/SDL-devel-1.2.10-mingw32.tar.gz>
 
 * __Java__ Development Kit SE 1.6.0 update 10 __headers__ and __import library__:
 
