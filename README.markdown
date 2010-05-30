@@ -214,11 +214,9 @@ and optionally mention the new version in the list below.
 	was included showed small misaligned fonts (works fine with 2.3.5 on linux.)
 	Do not know where I originally downloaded 2.1.10.2079
 
-* __GLEW__ 1.4.0
+* __GLEW__ 1.5.4
 
-	Compiled by rattle:
-
-	<http://spring.clan-sy.com/phpbb/viewtopic.php?p=236938#236938>
+	<http://glew.sourceforge.net>
 
 * __SDL__ 1.2.12
 
