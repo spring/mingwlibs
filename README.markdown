@@ -96,7 +96,7 @@ The original `il.h` and `ilu.h` are included too as `il.h.orig` and `ilu.h.orig`
 `imagehlp.h` had an identical problem so it is included in this package. It
 should be picked up automatically because of the order of the include paths,
 ie. `mingwlibs/include` takes precedence over `%MINGDIR%/include`.
-It can be foudn in from `w32api-3.9` on <http://www.mingw.org>.
+It can be found in from `w32api-3.9` on <http://www.mingw.org>.
 
 #### Cross-Compiling Boost
 
