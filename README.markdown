@@ -259,8 +259,30 @@ and optionally mention the new version in the list below.
 
 	<http://vecmath.dev.java.net>
 
+* MS C Run-Time Libraries __MSVCR71.dll__
+
+	<http://msdn.microsoft.com/en-us/library/abx4dbyh(VS.71).aspx>
+
+	on that page, see:
+		_What is the difference between msvcrt.dll and msvcr71.dll?_
+
 
 ### ChangeLog
+
+* SCM (git), 13. October 2010
+	- add `MSVCR71.dll`
+
+* SCM (git), 13. June 2010
+	- rename `soft_oal.dll` to `OpenAL32.dll` (because it internally requires that name)
+
+* SCM (git), 12. June 2010
+	- include an updated `glext.h` (MinGW includes one with OpenGL1.2 only)
+
+* SCM (git), 30. May 2010
+	- switch SDL version to 1.2.10
+
+* SCM (git), 29. May 2010
+	- updated GLEW to 1.5.4
 
 * Version _20.2_, 22. March 2010
 	- add `7za.exe`
