@@ -144,7 +144,9 @@ in-between versions.
 		${BOOST_LIBS}
 
 	# Copying the libraries to MinGW-libs
+	mkdir "${MINGWLIBS_DIR}/lib/"
 	for f in $(find ${BOOST_BUILD_DIR}/ -name "*.lib"); do cp "$f" "${MINGWLIBS_DIR}/lib/$(basename "$f" | sed -e 's/_win32//' | sed -e 's/\.lib$/-mt\.a/')"; done
+	for f in $(find ${BOOST_BUILD_DIR}/ -name "*.a"); do cp "$f" "${MINGWLIBS_DIR}/lib/$(basename "$f" | sed -e 's/_win32//' | sed -e 's/\.a$/-mt\.a/')"; done
 
 	# Adding symbol tables to the libs (this should not be required anymore in boost 1.43+)
 	for f in $(ls ${MINGWLIBS_DIR}/lib/libboost_*.a); do ${MINGW_RANLIB} "$f"; done
