@@ -19,6 +19,9 @@
 #ifndef BOOST_REGEX_V4_BASIC_REGEX_HPP
 #define BOOST_REGEX_V4_BASIC_REGEX_HPP
 
+#include <boost/type_traits/is_same.hpp>
+#include <boost/functional/hash.hpp>
+
 #ifdef BOOST_MSVC
 #pragma warning(push)
 #pragma warning(disable: 4103)
@@ -44,12 +47,114 @@ namespace re_detail{
 template <class charT, class traits>
 class basic_regex_parser;
 
+template <class I>
+void bubble_down_one(I first, I last)
+{
+   if(first != last)
+   {
+      I next = last - 1;
+      while((next != first) && (*next < *(next-1)))
+      {
+         (next-1)->swap(*next);
+         --next;
+      }
+   }
+}
+
+template <class Iterator>
+inline int hash_value_from_capture_name(Iterator i, Iterator j)
+{
+   std::size_t r = boost::hash_range(i, j);
+   r %= ((std::numeric_limits<int>::max)() - 10001);
+   r += 10000;
+   return static_cast<int>(r);
+}
+
+class named_subexpressions
+{
+public:
+   struct name
+   {
+      template <class charT>
+      name(const charT* i, const charT* j, int idx)
+         : index(idx) 
+      { 
+         hash = hash_value_from_capture_name(i, j); 
+      }
+      name(int h, int idx)
+         : index(idx), hash(h)
+      { 
+      }
+      int index;
+      int hash;
+      bool operator < (const name& other)const
+      {
+         return hash < other.hash;
+      }
+      bool operator == (const name& other)const
+      {
+         return hash == other.hash; 
+      }
+      void swap(name& other)
+      {
+         std::swap(index, other.index);
+         std::swap(hash, other.hash);
+      }
+   };
+
+   typedef std::vector<name>::const_iterator const_iterator;
+   typedef std::pair<const_iterator, const_iterator> range_type;
+
+   named_subexpressions(){}
+
+   template <class charT>
+   void set_name(const charT* i, const charT* j, int index)
+   {
+      m_sub_names.push_back(name(i, j, index));
+      bubble_down_one(m_sub_names.begin(), m_sub_names.end());
+   }
+   template <class charT>
+   int get_id(const charT* i, const charT* j)const
+   {
+      name t(i, j, 0);
+      typename std::vector<name>::const_iterator pos = std::lower_bound(m_sub_names.begin(), m_sub_names.end(), t);
+      if((pos != m_sub_names.end()) && (*pos == t))
+      {
+         return pos->index;
+      }
+      return -1;
+   }
+   template <class charT>
+   range_type equal_range(const charT* i, const charT* j)const
+   {
+      name t(i, j, 0);
+      return std::equal_range(m_sub_names.begin(), m_sub_names.end(), t);
+   }
+   int get_id(int h)const
+   {
+      name t(h, 0);
+      std::vector<name>::const_iterator pos = std::lower_bound(m_sub_names.begin(), m_sub_names.end(), t);
+      if((pos != m_sub_names.end()) && (*pos == t))
+      {
+         return pos->index;
+      }
+      return -1;
+   }
+   range_type equal_range(int h)const
+   {
+      name t(h, 0);
+      return std::equal_range(m_sub_names.begin(), m_sub_names.end(), t);
+   }
+private:
+   std::vector<name> m_sub_names;
+};
+
 //
 // class regex_data:
 // represents the data we wish to expose to the matching algorithms.
 //
 template <class charT, class traits>
-struct regex_data
+struct regex_data : public named_subexpressions
 {
    typedef regex_constants::syntax_option_type   flag_type;
    typedef std::size_t                           size_type;  
@@ -77,6 +182,7 @@ struct regex_data
    std::vector<
       std::pair<
       std::size_t, std::size_t> > m_subs;                 // Position of sub-expressions within the *string*.
+   bool                        m_has_recursions;          // whether we have recursive expressions;
 };
 //
 // class basic_regex_implementation
@@ -519,6 +625,10 @@ public:
    {
       BOOST_ASSERT(0 != m_pimpl.get());
       return m_pimpl->get_data();
+   }
+   boost::shared_ptr<re_detail::named_subexpressions > get_named_subs()const
+   {
+      return m_pimpl;
    }
 
 private:

@@ -54,21 +54,18 @@ void instantiate_ptr_serialization(Serializable*, counter<0>) {}
 
 #define BOOST_SERIALIZATION_REGISTER_ARCHIVE(Archive)                     \
 namespace boost { namespace archive { namespace detail {                  \
-    get_counter<Archive>::next adjust_counter(get_counter<Archive>::type);\
+    get_counter<Archive >::next adjust_counter(get_counter<Archive >::type);\
     template<class Serializable>                                          \
     void instantiate_ptr_serialization(Serializable* s,                   \
-        get_counter<Archive>::type) {                                     \
+        get_counter<Archive >::type) {                                    \
         ptr_serialization_support<Archive, Serializable> x;               \
-        instantiate_ptr_serialization(s, get_counter<Archive>::prior());  \
+        instantiate_ptr_serialization(s, get_counter<Archive >::prior()); \
     }\
 }}}
 
 
 #else
 
- // This function gets called, but its only purpose is to participate
- // in overload resolution with the functions declared by
- // BOOST_SERIALIZATION_REGISTER_ARCHIVE, below.
 // This function gets called, but its only purpose is to participate
 // in overload resolution with the functions declared by
 // BOOST_SERIALIZATION_REGISTER_ARCHIVE, below.

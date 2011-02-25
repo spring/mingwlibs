@@ -10,7 +10,6 @@
     #ifndef BOOST_PROTO_TRANSFORM_CALL_HPP_EAN_11_02_2007
     #define BOOST_PROTO_TRANSFORM_CALL_HPP_EAN_11_02_2007
 
-    #include <boost/proto/detail/prefix.hpp>
     #include <boost/preprocessor/cat.hpp>
     #include <boost/preprocessor/facilities/intercept.hpp>
     #include <boost/preprocessor/iteration/iterate.hpp>
@@ -24,10 +23,8 @@
     #include <boost/proto/proto_fwd.hpp>
     #include <boost/proto/traits.hpp>
     #include <boost/proto/transform/impl.hpp>
-    #include <boost/proto/detail/dont_care.hpp>
     #include <boost/proto/detail/as_lvalue.hpp>
     #include <boost/proto/detail/poly_function.hpp>
-    #include <boost/proto/detail/suffix.hpp>
 
     namespace boost { namespace proto
     {
@@ -79,9 +76,9 @@
         /// {};
         /// \endcode
         template<typename PrimitiveTransform>
-        struct call : PrimitiveTransform
-        {
-        };
+        struct call
+          : PrimitiveTransform
+        {};
 
         /// \brief Either call the PolymorphicFunctionObject with 0
         /// arguments, or invoke the PrimitiveTransform with 3
@@ -94,7 +91,7 @@
             struct impl2
               : transform_impl<Expr, State, Data>
             {
-                typedef typename boost::result_of<Fun()>::type result_type;
+                typedef typename BOOST_PROTO_RESULT_OF<Fun()>::type result_type;
 
                 result_type operator()(
                     typename impl2::expr_param
@@ -124,8 +121,8 @@
             /// \param d An arbitrary data
 
             /// If \c Fun is a nullary PolymorphicFunctionObject, \c type is a typedef
-            /// for <tt>boost::result_of\<Fun()\>::::type</tt>. Otherwise, it is
-            /// a typedef for <tt>boost::result_of\<Fun(Expr, State, Data)\>::::type</tt>.
+            /// for <tt>boost::result_of\<Fun()\>::type</tt>. Otherwise, it is
+            /// a typedef for <tt>boost::result_of\<Fun(Expr, State, Data)\>::type</tt>.
             template<typename Expr, typename State, typename Data>
             struct impl
               : impl2<Expr, State, Data, is_transform<Fun>::value>
@@ -143,15 +140,14 @@
               : transform_impl<Expr, State, Data>
             {
                 typedef typename when<_, A0>::template impl<Expr, State, Data>::result_type a0;
-                typedef typename detail::as_mono_function<Fun(a0)>::type mono_fun;
-                typedef typename boost::result_of<mono_fun(a0)>::type result_type;
+                typedef typename detail::poly_function_traits<Fun, Fun(a0)>::result_type result_type;
                 result_type operator ()(
                     typename impl2::expr_param   e
                   , typename impl2::state_param  s
                   , typename impl2::data_param   d
                 ) const
                 {
-                    return mono_fun()(
+                    return typename detail::poly_function_traits<Fun, Fun(a0)>::function_type()(
                         detail::as_lvalue(typename when<_, A0>::template impl<Expr, State, Data>()(e, s, d))
                     );
                 }
@@ -179,8 +175,8 @@
             /// Let \c x be <tt>when\<_, A0\>()(e, s, d)</tt> and \c X
             /// be the type of \c x.
             /// If \c Fun is a unary PolymorphicFunctionObject that accepts \c x,
-            /// then \c type is a typedef for <tt>boost::result_of\<Fun(X)\>::::type</tt>.
-            /// Otherwise, it is a typedef for <tt>boost::result_of\<Fun(X, State, Data)\>::::type</tt>.
+            /// then \c type is a typedef for <tt>boost::result_of\<Fun(X)\>::type</tt>.
+            /// Otherwise, it is a typedef for <tt>boost::result_of\<Fun(X, State, Data)\>::type</tt>.
 
             /// Either call the PolymorphicFunctionObject with 1 argument:
             /// the result of applying the \c A0 transform; or
@@ -214,15 +210,14 @@
             {
                 typedef typename when<_, A0>::template impl<Expr, State, Data>::result_type a0;
                 typedef typename when<_, A1>::template impl<Expr, State, Data>::result_type a1;
-                typedef typename detail::as_mono_function<Fun(a0, a1)>::type mono_fun;
-                typedef typename boost::result_of<mono_fun(a0, a1)>::type result_type;
+                typedef typename detail::poly_function_traits<Fun, Fun(a0, a1)>::result_type result_type;
                 result_type operator ()(
                     typename impl2::expr_param   e
                   , typename impl2::state_param  s
                   , typename impl2::data_param   d
                 ) const
                 {
-                    return mono_fun()(
+                    return typename detail::poly_function_traits<Fun, Fun(a0, a1)>::function_type()(
                         detail::as_lvalue(typename when<_, A0>::template impl<Expr, State, Data>()(e, s, d))
                       , detail::as_lvalue(typename when<_, A1>::template impl<Expr, State, Data>()(e, s, d))
                     );
@@ -256,8 +251,8 @@
                 /// be the type of \c y.
                 /// If \c Fun is a binary PolymorphicFunction object that accepts \c x
                 /// and \c y, then \c type is a typedef for
-                /// <tt>boost::result_of\<Fun(X, Y)\>::::type</tt>. Otherwise, it is
-                /// a typedef for <tt>boost::result_of\<Fun(X, Y, Data)\>::::type</tt>.
+                /// <tt>boost::result_of\<Fun(X, Y)\>::type</tt>. Otherwise, it is
+                /// a typedef for <tt>boost::result_of\<Fun(X, Y, Data)\>::type</tt>.
 
             /// Either call the PolymorphicFunctionObject with 2 arguments:
             /// the result of applying the \c A0 transform, and the
@@ -295,15 +290,14 @@
                 typedef typename when<_, A0>::template impl<Expr, State, Data>::result_type a0;
                 typedef typename when<_, A1>::template impl<Expr, State, Data>::result_type a1;
                 typedef typename when<_, A2>::template impl<Expr, State, Data>::result_type a2;
-                typedef typename detail::as_mono_function<Fun(a0, a1, a2)>::type mono_fun;
-                typedef typename boost::result_of<mono_fun(a0, a1, a2)>::type result_type;
+                typedef typename detail::poly_function_traits<Fun, Fun(a0, a1, a2)>::result_type result_type;
                 result_type operator ()(
                     typename impl2::expr_param   e
                   , typename impl2::state_param  s
                   , typename impl2::data_param   d
                 ) const
                 {
-                    return mono_fun()(
+                    return typename detail::poly_function_traits<Fun, Fun(a0, a1, a2)>::function_type()(
                         detail::as_lvalue(typename when<_, A0>::template impl<Expr, State, Data>()(e, s, d))
                       , detail::as_lvalue(typename when<_, A1>::template impl<Expr, State, Data>()(e, s, d))
                       , detail::as_lvalue(typename when<_, A2>::template impl<Expr, State, Data>()(e, s, d))
@@ -388,11 +382,7 @@
                 #undef M0
 
                 typedef
-                    typename detail::as_mono_function<Fun(BOOST_PP_ENUM_PARAMS(N, a))>::type
-                mono_fun;
-
-                typedef
-                    typename boost::result_of<mono_fun(BOOST_PP_ENUM_PARAMS(N, a))>::type
+                    typename detail::poly_function_traits<Fun, Fun(BOOST_PP_ENUM_PARAMS(N, a))>::result_type
                 result_type;
 
                 /// Let \c ax be <tt>when\<_, Ax\>()(e, s, d)</tt>
@@ -413,7 +403,9 @@
                             typename when<_, BOOST_PP_CAT(A, M)>                                    \
                                 ::template impl<Expr, State, Data>()(e, s, d))                      \
                         /**/
-                    return mono_fun()(BOOST_PP_ENUM(N, M0, ~));
+                    return typename detail::poly_function_traits<Fun, Fun(BOOST_PP_ENUM_PARAMS(N, a))>::function_type()(
+                        BOOST_PP_ENUM(N, M0, ~)
+                    );
                     #undef M0
                 }
             };
