@@ -107,68 +107,7 @@ and they worked for boost 1.42.0.
 Due to the nature of boost, it is very likely these steps will have to be adapted
 in-between versions.
 
-	BOOST_VERSION=1_42_0
-	BOOST_LIBS="thread system filesystem regex program_options signals"
-	BOOST_HEADERS="thread system filesystem regex program_options signals format ptr_container spirit algorithm date_time asio"
-	BOOST_CONF=~/user-config.jam
-
-	# Setting system dependent vars
-	BOOST_BUILD_DIR=/tmp/build-boost
-	MINGWLIBS_DIR=~/Projects/spring/var/mingwlibs
-	# x86 or x86_64
-	HOST_ARCH=$(uname -m)
-	MINGW_GPP=i686-mingw32-g++
-	MINGW_RANLIB=i686-mingw32-ranlib
-
-	tar xfj boost_${BOOST_VERSION}.tar.bz2
-	cd boost_${BOOST_VERSION}/
-
-	# Backing up Jam config file, if one exists
-	cp ${BOOST_CONF} ${BOOST_CONF}_BAK 2> /dev/null
-
-	# Building bjam - the preferred Boost build tool
-	cd tools/jam
-	sh ./build_dist.sh
-	cp stage/bin.linux${HOST_ARCH}/bjam ../..
-	cd ../..
-
-	# Building the required libraries
-	echo "using gcc : : ${MINGW_GPP} ;" >> ${BOOST_CONF}
-	./bjam \
-		--build-dir=${BOOST_BUILD_DIR} \
-		target-os=windows \
-		threadapi=win32 \
-		threading=multi \
-		link=static \
-		toolset=gcc \
-		${BOOST_LIBS}
-
-	# Copying the libraries to MinGW-libs
-	mkdir "${MINGWLIBS_DIR}/lib/"
-	for f in $(find ${BOOST_BUILD_DIR}/ -name "*.lib"); do cp "$f" "${MINGWLIBS_DIR}/lib/$(basename "$f" | sed -e 's/_win32//' | sed -e 's/\.lib$/-mt\.a/')"; done
-	for f in $(find ${BOOST_BUILD_DIR}/ -name "*.a"); do cp "$f" "${MINGWLIBS_DIR}/lib/$(basename "$f" | sed -e 's/_win32//' | sed -e 's/\.a$/-mt\.a/')"; done
-
-	# Adding symbol tables to the libs (this should not be required anymore in boost 1.43+)
-	for f in $(ls ${MINGWLIBS_DIR}/lib/libboost_*.a); do ${MINGW_RANLIB} "$f"; done
-
-	# Building bcp - boosts own filtering tool
-	rm ${BOOST_CONF}
-	cd tools/bcp
-	../../bjam --build-dir=${BOOST_BUILD_DIR}
-	cd ../..
-	cp $(ls ${BOOST_BUILD_DIR}/boost/*/tools/bcp/*/*/*/bcp) .
-
-	# Copying the headers to MinGW-libs
-	rm -Rf ${MINGWLIBS_DIR}/include/boost
-	# "all of them"
-	#cp -r ./boost ${MINGWLIBS_DIR}/include/
-	# Filtering
-	mkdir ${BOOST_BUILD_DIR}/filtered
-	./bcp ${BOOST_HEADERS} ${BOOST_BUILD_DIR}/filtered
-	cp -r ${BOOST_BUILD_DIR}/filtered/boost ${MINGWLIBS_DIR}/include/
-
-	# Restoring the Jam config file backup, if one exists
-	cp ${BOOST_CONF}_BAK ${BOOST_CONF} 2> /dev/null
+_Adjust_ and run <boost_crosscompile.sh>.
 
 You should now have both the static libs and the headers of the new boost
 version in your mingwlibs dir, and are only left to do the git magic to commit,
@@ -191,7 +130,7 @@ and optionally mention the new version in the list below.
 
 	<http://www.bastet.com>
 
-* __Boost__ 1.39.0
+* __Boost__ 1.46.0
 
 	<http://www.boost.org>
 
@@ -215,7 +154,7 @@ and optionally mention the new version in the list below.
 	was included showed small misaligned fonts (works fine with 2.3.5 on linux.)
 	Do not know where I originally downloaded 2.1.10.2079
 
-* __GLEW__ 1.5.4
+* __GLEW__
 
 	<http://glew.sourceforge.net>
 
@@ -267,99 +206,3 @@ and optionally mention the new version in the list below.
 
 	on that page, see:
 		_What is the difference between msvcrt.dll and msvcr71.dll?_
-
-
-### ChangeLog
-
-* SCM (git), 13. October 2010
-	- add `MSVCR71.dll`
-
-* SCM (git), 13. June 2010
-	- rename `soft_oal.dll` to `OpenAL32.dll` (because it internally requires that name)
-
-* SCM (git), 12. June 2010
-	- include an updated `glext.h` (MinGW includes one with OpenGL1.2 only)
-
-* SCM (git), 30. May 2010
-	- switch SDL version to 1.2.10
-
-* SCM (git), 29. May 2010
-	- updated GLEW to 1.5.4
-
-* Version _20.2_, 22. March 2010
-	- add `7za.exe`
-	- add `dos2unix.exe`
-	- add `vecmat.jar` and `vecmath-src.jar`
-
-* Version _20.1_, 2. March 2010
-	- Replaced OpenAL from Creative with OpenAL Soft 1.11 to fix
-	  the volume escalation bug, and for air-absorption support
-
-* Version _20_, 23. January 2010
-	- updated OpenAL to fix bugs on win7
-	- updated ogg/vorbis
-
-* Version _19.2_, 05. August 2009
-	- added missing libraries for new mingw (shared libd, mingwm10)
-	- updated `ogg.dll` (1.1.4) and `vorbis.dll`/`vorbisfile.dll` (1.2.3)
-
-* Version _19.1_, 01. August 2009
-	- removed wx includes
-	- added boost::signals library
-
-* Version _19_, 15. May 2009
-	- removed wxWindows-dlls
-
-* Version _18_, 10. May 2009
-	- replaced `awk.exe` with a non segfaulting one,
-	  that does not depend on extra DLLs
-	- removed `junction.exe`, as we found out it is not needed
-
-* Version _17_, 8. May 2009
-	- added `junction.exe`, a script for making junctions on NTFS,
-	  comparable to symlinks on unix
-	- added libboost_program_options
-	- updated boost to 1.39.0 to make compiling with TDM MinGW >= 4.4.0 work
-	- replaced awk.exe with a non segfaultign one
-
-* Version _16_, February 2009
-	- `ogg.dll` 1.1.3, `vorbis.dll`/`vorbisfile.dll` 1.2.0, hopefully fix some bugs
-	- restored older versions of DevIL / IL / ILU (newer ones required msvcp*)
-
-* Version _15_, 13. March 2009
-	- removed lots of the static (import?) libraries
-	- make directory structure so it works with cmake `Find_Module()` (hopefully without breaking scons)
-
-* Version _14_, 11. March 2009
-	- Boost 1.38 (build by Auswaschbar, stripped down with bcp)
-
-* Version _13_, 26. January 2009
-	- `OpenAL32.dll` + include (from creative)
-
-* Version _12_
-	- added lib for interfacing with the Java VM
-	- added `awk.exe` (GNU Awk 3.1.6), which is used by some AI Interfaces
-
-* Version _11_
-	- updated boost to 1.35.0 to make compiling with gcc >= 4.3.0 work.
-
-* Version _10_, 8 December 2007
-	- Ogg/Vorbis/vorbisfile compiled with MinGW, not MSVC
-	- New `glew32.dll`, now compiled with MinGW
-
-* Version _9_, 26 November 2007
-	- Added wxWidgets 2.8
-	- Downgraded FreeType to 2.1.10.2079 (from v7) because of scaling/alignment issues with 2.3.5
-	- Upgraded boost to 1.34
-
-* Version _8_, 21 November 2007
-	- Added Ogg
-	- Added Vorbis
-	- Added Vorbisfile
-	- Removed Python 2.4
-	- Updated FreeType to 2.3.5
-	- Updated GLEW to 1.4.0
-	- Updated SDL to 1.2.12
-	- Updated Python to 2.5.1
-	- Updated Zlib to 1.2.3
-
