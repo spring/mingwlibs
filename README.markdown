@@ -120,7 +120,7 @@ and optionally mention the new version in the list below.
 	<http://home.claranet.de/xyzzy/home/ltru/gawk-win.htm>
 
 	This version does not depend on any dlls, and does not segfault
-	like the official GNU awk.exe
+	like the official GNU `awk.exe`.
 
 * __7-Zip__ (A) 4.65 2009-02-03
 
