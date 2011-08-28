@@ -30,7 +30,7 @@ Your directory structure should look like this:
 
 2. For multiple spring repositories
 
-This is usefull if you have multiple spring repositories,
+This is useful  if you have multiple spring repositories,
 and you do not want to maintain mingwlibs separately for each of them,
 or if you simple want to keep it away from the spring sources.
 
