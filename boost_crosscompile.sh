@@ -1,7 +1,7 @@
 #!/bin/sh
 BOOST_VERSION=1_46_0
-BOOST_LIBS="thread system filesystem regex program_options signals"
-SPRING_HEADERS="thread system filesystem regex program_options signals format ptr_container spirit algorithm date_time asio"
+BOOST_LIBS="test thread system filesystem regex program_options signals"
+SPRING_HEADERS="${BOOST_LIBS} format ptr_container spirit algorithm date_time asio"
 ASSIMP_HEADERS="math/common_factor smart_ptr"
 BOOST_HEADERS="${SPRING_HEADERS} ${ASSIMP_HEADERS}"
 BOOST_CONF=./user-config.jam
@@ -13,9 +13,20 @@ MINGWLIBS_DIR=~/boostlibs/mingwlibs/
 MINGW_GPP=/usr/bin/i686-mingw32-g++
 MINGW_RANLIB=i686-mingw32-ranlib
 
-cd boost_${BOOST_VERSION}/
 
+BOOST_LIBS_ARG=""
+for LIB in $BOOST_LIBS
+do
+	BOOST_LIBS_ARG="${BOOST_LIBS_ARG} --with-${LIB}"
+done
+
+
+#############################################################################################################
+
+cd boost_${BOOST_VERSION}/
 ./bootstrap.sh
+
+
 # Building bcp - boosts own filtering tool
 cd tools/bcp
 ../../bjam --build-dir=${BOOST_BUILD_DIR}
@@ -28,13 +39,14 @@ echo "using gcc : : ${MINGW_GPP} ;" > ${BOOST_CONF}
 ./bjam \
     --build-dir="${BOOST_BUILD_DIR}" \
     --user-config=${BOOST_CONF} \
+    --debug-building \
+    ${BOOST_LIBS_ARG} \
     variant=release \
     target-os=windows \
     threadapi=win32 \
     threading=multi \
     link=static \
     toolset=gcc \
-    ${BOOST_LIBS}
 
 
 # Setup final structure 
