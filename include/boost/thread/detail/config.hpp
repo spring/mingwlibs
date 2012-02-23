@@ -7,6 +7,9 @@
 #ifndef BOOST_THREAD_CONFIG_WEK01032003_HPP
 #define BOOST_THREAD_CONFIG_WEK01032003_HPP
 
+//! Spring: fix a bug with boost's static linking & mingw
+#define BOOST_THREAD_USE_LIB
+
 #include <boost/config.hpp>
 #include <boost/detail/workaround.hpp>
 
