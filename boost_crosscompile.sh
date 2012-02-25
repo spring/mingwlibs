@@ -1,5 +1,5 @@
 #!/bin/sh
-BOOST_VERSION=1_46_0
+BOOST_VERSION=1_48_0
 BOOST_LIBS="test thread system filesystem regex program_options signals"
 SPRING_HEADERS="${BOOST_LIBS} format ptr_container spirit algorithm date_time asio"
 ASSIMP_HEADERS="math/common_factor smart_ptr"
@@ -23,6 +23,14 @@ done
 
 #############################################################################################################
 
+# Setup final structure
+rm -f ${MINGWLIBS_DIR}lib/libboost* 2>/dev/null
+rm -Rf ${MINGWLIBS_DIR}include/boost 2>/dev/null
+mkdir -p ${MINGWLIBS_DIR}lib/ 2>/dev/null
+mkdir -p ${MINGWLIBS_DIR}include/boost/ 2>/dev/null
+
+
+# bootstrap bjam
 cd boost_${BOOST_VERSION}/
 ./bootstrap.sh
 
@@ -38,6 +46,7 @@ cp $(ls ${BOOST_BUILD_DIR}/boost/*/tools/bcp/*/*/*/bcp) .
 echo "using gcc : : ${MINGW_GPP} ;" > ${BOOST_CONF}
 ./bjam \
     --build-dir="${BOOST_BUILD_DIR}" \
+    --stagedir="${MINGWLIBS_DIR}" \
     --user-config=${BOOST_CONF} \
     --debug-building \
     ${BOOST_LIBS_ARG} \
@@ -49,23 +58,17 @@ echo "using gcc : : ${MINGW_GPP} ;" > ${BOOST_CONF}
     toolset=gcc \
 
 
-# Setup final structure 
-mkdir ${MINGWLIBS_DIR}
-rm -Rf ${MINGWLIBS_DIR}lib
-mkdir ${MINGWLIBS_DIR}lib/
-mkdir ${MINGWLIBS_DIR}include/
-rm -Rf ${MINGWLIBS_DIR}include/boost
-mkdir ${MINGWLIBS_DIR}include/boost/
-
-
-# Copying the libraries to MinGW-libs
-for f in $(find ${BOOST_BUILD_DIR} -iname "*.a"); do
-	echo "Copying BOOST_BUILD_DIR/$(basename "$f") to ${MINGWLIBS_DIR}lib/$(basename "$f" | sed -e 's/_win32//' | sed -e 's/\.a/-mt\.a/' )"
-	cp "$f" "${MINGWLIBS_DIR}lib/$(basename "$f" | sed -e 's/_win32//' | sed -e 's/\.a/-mt\.a/' )";
+# fix library names (libboost_thread_win32.a -> libboost_thread-mt.a)
+for f in $(ls ${MINGWLIBS_DIR}lib/*.a); do
+	FIXEDBASENAME=$(basename "$f" | sed -e 's/_win32//' | sed -e 's/\.a/-mt\.a/' )
+	mv "$f" "${MINGWLIBS_DIR}lib/$FIXEDBASENAME"
 done
 
+
 # Adding symbol tables to the libs (this should not be required anymore in boost 1.43+)
-for f in $(ls ${MINGWLIBS_DIR}lib/libboost_*.a); do ${MINGW_RANLIB} "$f"; done
+for f in $(ls ${MINGWLIBS_DIR}lib/libboost_*.a); do
+	${MINGW_RANLIB} "$f";
+done
 
 
 # Copying the headers to MinGW-libs
@@ -73,3 +76,8 @@ rm -Rf ${BOOST_BUILD_DIR}/filtered
 mkdir ${BOOST_BUILD_DIR}/filtered
 ./bcp ${BOOST_HEADERS} ${BOOST_BUILD_DIR}/filtered &> /dev/null
 cp -r ${BOOST_BUILD_DIR}/filtered/boost ${MINGWLIBS_DIR}include/
+
+
+# we always use pthreads (even on windows!)
+#echo "#define BOOST_THREAD_POSIX" >> "${MINGWLIBS_DIR}include/boost/config/user.hpp"
+echo "#define BOOST_THREAD_USE_LIB" >> "${MINGWLIBS_DIR}include/boost/config/user.hpp"
