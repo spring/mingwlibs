@@ -22,7 +22,9 @@
       && !defined(BOOST_ASIO_HAS_EPOLL) \
       && !defined(BOOST_ASIO_HAS_KQUEUE))
 
+#include <boost/limits.hpp>
 #include <cstddef>
+#include <boost/asio/detail/fd_set_adapter.hpp>
 #include <boost/asio/detail/mutex.hpp>
 #include <boost/asio/detail/op_queue.hpp>
 #include <boost/asio/detail/reactor_op.hpp>
@@ -51,10 +53,10 @@ class select_reactor
 {
 public:
 #if defined(BOOST_WINDOWS) || defined(__CYGWIN__)
-  enum { read_op = 0, write_op = 1, except_op = 2,
+  enum op_types { read_op = 0, write_op = 1, except_op = 2,
     max_select_ops = 3, connect_op = 3, max_ops = 4 };
 #else // defined(BOOST_WINDOWS) || defined(__CYGWIN__)
-  enum { read_op = 0, write_op = 1, except_op = 2,
+  enum op_types { read_op = 0, write_op = 1, except_op = 2,
     max_select_ops = 3, connect_op = 1, max_ops = 3 };
 #endif // defined(BOOST_WINDOWS) || defined(__CYGWIN__)
 
@@ -72,12 +74,22 @@ public:
   // Destroy all user-defined handler objects owned by the service.
   BOOST_ASIO_DECL void shutdown_service();
 
+  // Recreate internal descriptors following a fork.
+  BOOST_ASIO_DECL void fork_service(
+      boost::asio::io_service::fork_event fork_ev);
+
   // Initialise the task, but only if the reactor is not in its own thread.
   BOOST_ASIO_DECL void init_task();
 
   // Register a socket with the reactor. Returns 0 on success, system error
   // code on failure.
   BOOST_ASIO_DECL int register_descriptor(socket_type, per_descriptor_data&);
+
+  // Register a descriptor with an associated single operation. Returns 0 on
+  // success, system error code on failure.
+  BOOST_ASIO_DECL int register_internal_descriptor(
+      int op_type, socket_type descriptor,
+      per_descriptor_data& descriptor_data, reactor_op* op);
 
   // Post a reactor operation for immediate completion.
   void post_immediate_completion(reactor_op* op)
@@ -97,8 +109,17 @@ public:
 
   // Cancel any operations that are running against the descriptor and remove
   // its registration from the reactor.
-  BOOST_ASIO_DECL void close_descriptor(socket_type descriptor,
-      per_descriptor_data&);
+  BOOST_ASIO_DECL void deregister_descriptor(socket_type descriptor,
+      per_descriptor_data&, bool closing);
+
+  // Remote the descriptor's registration from the reactor.
+  BOOST_ASIO_DECL void deregister_internal_descriptor(
+      socket_type descriptor, per_descriptor_data& descriptor_data);
+
+  // Move descriptor registration from one descriptor_data object to another.
+  BOOST_ASIO_DECL void move_descriptor(socket_type descriptor,
+      per_descriptor_data& target_descriptor_data,
+      per_descriptor_data& source_descriptor_data);
 
   // Add a new timer queue to the reactor.
   template <typename Time_Traits>
@@ -119,7 +140,8 @@ public:
   // number of operations that have been posted or dispatched.
   template <typename Time_Traits>
   std::size_t cancel_timer(timer_queue<Time_Traits>& queue,
-      typename timer_queue<Time_Traits>::per_timer_data& timer);
+      typename timer_queue<Time_Traits>::per_timer_data& timer,
+      std::size_t max_cancelled = (std::numeric_limits<std::size_t>::max)());
 
   // Run select once until interrupted or events are ready to be dispatched.
   BOOST_ASIO_DECL void run(bool block, op_queue<operation>& ops);
@@ -161,6 +183,9 @@ private:
 
   // The queues of read, write and except operations.
   reactor_op_queue<socket_type> op_queue_[max_ops];
+
+  // The file descriptor sets to be passed to the select system call.
+  fd_set_adapter fd_sets_[max_select_ops];
 
   // The timer queues.
   timer_queue_set timer_queues_;

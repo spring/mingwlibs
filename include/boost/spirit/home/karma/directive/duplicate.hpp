@@ -21,6 +21,7 @@
 #include <boost/spirit/home/support/has_semantic_action.hpp>
 #include <boost/spirit/home/support/handles_container.hpp>
 #include <boost/fusion/include/cons.hpp>
+#include <boost/fusion/include/make_cons.hpp>
 #include <boost/fusion/include/vector.hpp>
 #include <boost/fusion/include/at_c.hpp>
 #include <boost/mpl/identity.hpp>
@@ -38,7 +39,9 @@ namespace boost { namespace spirit
 
 namespace boost { namespace spirit { namespace karma
 {
+#ifndef BOOST_SPIRIT_NO_PREDEFINED_TERMINALS
     using spirit::duplicate;
+#endif
     using spirit::duplicate_type;
 
     ///////////////////////////////////////////////////////////////////////////
