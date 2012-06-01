@@ -45,10 +45,6 @@ Just extract the archive anywhere you want it, eg like this:
 For the spring build-system to find the libs, you have to specify them
 in the configure step like this:
 
-_SCons_
-
-	scons configure mingwlibsdir=C:\mingwlibs [other-options...]
-
 _CMake_
 
 	cmake -DMINGWLIBS=C:\mingwlibs [other-options...]
@@ -143,7 +139,7 @@ and optionally mention the new version in the list below.
 
 	<http://www.bastet.com>
 
-* __Boost__ 1.46.0
+* __Boost__ 1.48.0
 
 	<http://www.boost.org>
 
