@@ -98,12 +98,10 @@ It can be found in from `w32api-3.9` on <http://www.mingw.org>.
 
 Download [the latest boost sources archive](http://www.boost.org/users/download/).
 
-The following instructions outline the basic procedure,
-and they worked for boost 1.42.0.
 Due to the nature of boost, it is very likely these steps will have to be adapted
 in-between versions.
 
-_Adjust_ and run <boost_crosscompile.sh>.
+_Adjust_ and run boost_crosscompile.sh.
 
 You should now have both the static libs and the headers of the new boost
 version in your mingwlibs dir, and are only left to do the git magic to commit,
@@ -139,13 +137,12 @@ and optionally mention the new version in the list below.
 
 	<http://www.bastet.com>
 
-* __Boost__ 1.48.0
+* __Boost__ (see boost_crosscompile.sh for the used version)
 
 	<http://www.boost.org>
 
-	compiled by Auswaschbar, stripped down with:
-
-		> ./build/bin/bcp thread filesystem regex format ptr_container spirit algorithm date_time /tmp/boost_stripped
+* __Curl__ 7.24.0
+	<http://curl.haxx.se/>
 
 * __Devil__ 1.6.8-rc2 (even though the DLL properties say 1.6.5 ...)
 
