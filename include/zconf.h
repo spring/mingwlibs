@@ -388,7 +388,7 @@ typedef uLong FAR uLongf;
    typedef Byte       *voidp;
 #endif
 
-#define Z_U4 unsigned   /* ./configure put the #define Z_U4 here */
+#define Z_U4 unsigned   /* ./configure put the #define Z_U4 here */
 
 #if !defined(Z_U4) && !defined(Z_SOLO) && defined(STDC)
 #  include <limits.h>
