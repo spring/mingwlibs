@@ -27,7 +27,7 @@ done
 
 echo -e "\n---------------------------------------------------"
 echo "-- clone git repo"
-git clone -n . ${MINGWLIBS_DIR}
+git clone -n --reference . git://github.com/spring/mingwlibs.git ${MINGWLIBS_DIR} 
 
 
 # Setup final structure
