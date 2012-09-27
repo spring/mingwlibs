@@ -112,6 +112,6 @@ git push
 # cleanup
 echo -e "\n---------------------------------------------------"
 echo "-- cleanup"
-rm -rf ${BOOST_BUILD_DIR}
-rm -rf ${BOOST_DIR}
-rm -rf ${MINGWLIBS_DIR}
+#rm -rf ${BOOST_BUILD_DIR}
+#rm -rf ${BOOST_DIR}
+#rm -rf ${MINGWLIBS_DIR}
