@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Setting system dependent vars
 BOOST_DIR=/tmp/boost/
