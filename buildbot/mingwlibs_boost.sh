@@ -25,13 +25,13 @@ done
 
 #############################################################################################################
 
-echo "---------------------------------------------------"
+echo -e "\n---------------------------------------------------"
 echo "-- clone git repo"
 git clone -n . ${MINGWLIBS_DIR}
 
 
 # Setup final structure
-echo "---------------------------------------------------"
+echo -e "\n---------------------------------------------------"
 echo "-- setup dirs"
 mkdir -p ${BOOST_DIR} 2>/dev/null
 rm -f ${MINGWLIBS_DIR}lib/libboost* 2>/dev/null
@@ -41,7 +41,7 @@ mkdir -p ${MINGWLIBS_DIR}include/boost/ 2>/dev/null
 
 
 # Gentoo related - retrieve boost's tarball
-echo "\n---------------------------------------------------"
+echo -e "\n---------------------------------------------------"
 echo "-- fetching boost's tarball"
 command -v emerge >/dev/null 2>&1 || { echo >&2 "Gentoo needed. Aborting."; exit 1; } 
 emerge boost --fetchonly &>/dev/null
@@ -50,14 +50,14 @@ find ${DISTDIR} -iname "boost_*.tar.*" -print 2>/dev/null | xargs tar -xa -C ${B
 
 
 # bootstrap bjam
-echo "---------------------------------------------------"
+echo -e "\n---------------------------------------------------"
 echo "-- bootstrap bjam"
 cd ${BOOST_DIR}/boost_*
 ./bootstrap.sh || exit 1
 
 
 # Building bcp - boosts own filtering tool
-echo "---------------------------------------------------"
+echo -e "\n---------------------------------------------------"
 echo "-- creating bcp"
 cd tools/bcp
 ../../bjam --build-dir=${BOOST_BUILD_DIR} || exit 1
@@ -66,10 +66,11 @@ cp $(ls ${BOOST_BUILD_DIR}/boost/*/tools/bcp/*/*/*/bcp) .
 
 
 # Building the required libraries
-echo "---------------------------------------------------"
+echo -e "\n---------------------------------------------------"
 echo "-- running bjam"
 echo "using gcc : : ${MINGW_GPP} ;" > ${BOOST_CONF}
 ./bjam \
+    -j5 \
     --build-dir="${BOOST_BUILD_DIR}" \
     --stagedir="${MINGWLIBS_DIR}" \
     --user-config=${BOOST_CONF} \
@@ -86,7 +87,7 @@ echo "using gcc : : ${MINGW_GPP} ;" > ${BOOST_CONF}
 
 
 # Copying the headers to MinGW-libs
-echo "---------------------------------------------------"
+echo -e "\n---------------------------------------------------"
 echo "-- copying headers"
 rm -Rf ${BOOST_BUILD_DIR}/filtered
 mkdir ${BOOST_BUILD_DIR}/filtered
@@ -95,13 +96,13 @@ cp -r ${BOOST_BUILD_DIR}/filtered/boost ${MINGWLIBS_DIR}include/
 
 
 # some config we need
-echo "---------------------------------------------------"
+echo -e "\n---------------------------------------------------"
 echo "-- adjusting config/user.hpp"
 echo "#define BOOST_THREAD_USE_LIB" >> "${MINGWLIBS_DIR}include/boost/config/user.hpp"
 
 
 # push to repo
-echo "---------------------------------------------------"
+echo -e "\n---------------------------------------------------"
 echo "-- git push"
 cd ${MINGWLIBS_DIR}
 git add --all
@@ -109,6 +110,8 @@ git commit -m "boost update"
 git push
 
 # cleanup
+echo -e "\n---------------------------------------------------"
+echo "-- cleanup"
 rm -rf ${BOOST_BUILD_DIR}
 rm -rf ${BOOST_DIR}
 rm -rf ${MINGWLIBS_DIR}
