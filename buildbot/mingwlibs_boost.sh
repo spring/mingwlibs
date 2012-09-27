@@ -27,7 +27,7 @@ done
 
 echo -e "\n---------------------------------------------------"
 echo "-- clone git repo"
-git clone -n --reference . git://github.com/spring/mingwlibs.git ${MINGWLIBS_DIR} 
+git clone -n .  ${MINGWLIBS_DIR} 
 
 
 # Setup final structure
@@ -105,13 +105,15 @@ echo "#define BOOST_THREAD_USE_LIB" >> "${MINGWLIBS_DIR}include/boost/config/use
 echo -e "\n---------------------------------------------------"
 echo "-- git push"
 cd ${MINGWLIBS_DIR}
+git remote add origin git@github.com:spring/mingwlibs.git
 git add --all
 git commit -m "boost update"
 git push
 
+
 # cleanup
 echo -e "\n---------------------------------------------------"
 echo "-- cleanup"
-#rm -rf ${BOOST_BUILD_DIR}
-#rm -rf ${BOOST_DIR}
-#rm -rf ${MINGWLIBS_DIR}
+rm -rf ${BOOST_BUILD_DIR}
+rm -rf ${BOOST_DIR}
+rm -rf ${MINGWLIBS_DIR}
