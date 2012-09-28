@@ -35,7 +35,7 @@ rm -rf ${MINGWLIBS_DIR}
 
 echo -e "\n---------------------------------------------------"
 echo "-- clone git repo"
-git clone -n .  ${MINGWLIBS_DIR} 
+git clone -l -s .  ${MINGWLIBS_DIR} 
 
 
 # Setup final structure
