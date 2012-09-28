@@ -25,14 +25,7 @@ done
 
 #############################################################################################################
 
-# cleanup
-echo -e "\n---------------------------------------------------"
-echo "-- cleanup"
-rm -rf ${BOOST_BUILD_DIR}
-rm -rf ${BOOST_DIR}
-rm -rf ${MINGWLIBS_DIR}
-
-
+# git clone mingwlibs repo (needed for later uploading)
 echo -e "\n---------------------------------------------------"
 echo "-- clone git repo"
 git clone -l -s .  ${MINGWLIBS_DIR} 
@@ -109,7 +102,13 @@ echo "-- adjusting config/user.hpp"
 echo "#define BOOST_THREAD_USE_LIB" >> "${MINGWLIBS_DIR}include/boost/config/user.hpp"
 
 
-# push to repo
+# fix names
+echo -e "\n---------------------------------------------------"
+echo "-- fix some library names"
+mv "${MINGWLIBS_DIR}lib/libboost_thread_win32-mt.a" "${MINGWLIBS_DIR}lib/libboost_thread-mt.a"
+
+
+# push to git repo
 echo -e "\n---------------------------------------------------"
 echo "-- git push"
 cd ${MINGWLIBS_DIR}
@@ -117,3 +116,11 @@ git remote add cloud git@github.com:spring/mingwlibs.git
 git add --all
 git commit -m "boost update"
 git push cloud
+
+
+# cleanup
+echo -e "\n---------------------------------------------------"
+echo "-- cleanup"
+rm -rf ${BOOST_BUILD_DIR}
+rm -rf ${BOOST_DIR}
+rm -rf ${MINGWLIBS_DIR}
