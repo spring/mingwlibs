@@ -2,7 +2,7 @@
 // detail/task_io_service.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2011 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2012 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -89,7 +89,7 @@ public:
   // Return whether a handler can be dispatched immediately.
   bool can_dispatch()
   {
-    return thread_call_stack::contains(this);
+    return thread_call_stack::contains(this) != 0;
   }
 
   // Request invocation of the given handler.
@@ -111,6 +111,16 @@ public:
   // Request invocation of the given operations and return immediately. Assumes
   // that work_started() was previously called for each operation.
   BOOST_ASIO_DECL void post_deferred_completions(op_queue<operation>& ops);
+
+  // Request invocation of the given operation using the thread-private queue
+  // and return immediately. Assumes that work_started() has not yet been
+  // called for the operation.
+  BOOST_ASIO_DECL void post_private_immediate_completion(operation* op);
+
+  // Request invocation of the given operation using the thread-private queue
+  // and return immediately. Assumes that work_started() was previously called
+  // for the operation.
+  BOOST_ASIO_DECL void post_private_deferred_completion(operation* op);
 
   // Process unfinished operations as part of a shutdown_service operation.
   // Assumes that work_started() was previously called for the operations.

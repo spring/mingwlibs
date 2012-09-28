@@ -41,7 +41,9 @@ namespace unordered
     template <class K, class T, class H, class P, class A>
     class unordered_map
     {
+#if defined(BOOST_UNORDERED_USE_MOVE)
         BOOST_COPYABLE_AND_MOVABLE(unordered_map)
+#endif       
 
     public:
 
@@ -54,15 +56,9 @@ namespace unordered
 
     private:
 
-        typedef typename boost::unordered::detail::rebind_wrap<
-                allocator_type, value_type>::type
-            value_allocator;
-
-        typedef boost::unordered::detail::allocator_traits<value_allocator>
-            allocator_traits;
-
-        typedef boost::unordered::detail::map<value_allocator, K, H, P>
-            types;
+        typedef boost::unordered::detail::map<A, K, T, H, P> types;
+        typedef typename types::allocator value_allocator;
+        typedef typename types::traits allocator_traits;
         typedef typename types::table table;
 
     public:
@@ -84,7 +80,7 @@ namespace unordered
     private:
 
         table table_;
-        
+
     public:
 
         // constructors
@@ -121,10 +117,17 @@ namespace unordered
 
         unordered_map(unordered_map const&, allocator_type const&);
 
+#if defined(BOOST_UNORDERED_USE_MOVE)
         unordered_map(BOOST_RV_REF(unordered_map) other)
             : table_(other.table_, boost::unordered::detail::move_tag())
         {
         }
+#elif !defined(BOOST_NO_RVALUE_REFERENCES)
+        unordered_map(unordered_map&& other)
+            : table_(other.table_, boost::unordered::detail::move_tag())
+        {
+        }
+#endif
 
 #if !defined(BOOST_NO_RVALUE_REFERENCES)
         unordered_map(unordered_map&&, allocator_type const&);
@@ -145,6 +148,7 @@ namespace unordered
 
         // Assign
 
+#if defined(BOOST_UNORDERED_USE_MOVE)
         unordered_map& operator=(BOOST_COPY_ASSIGN_REF(unordered_map) x)
         {
             table_.assign(x.table_);
@@ -156,6 +160,21 @@ namespace unordered
             table_.move_assign(x.table_);
             return *this;
         }
+#else
+        unordered_map& operator=(unordered_map const& x)
+        {
+            table_.assign(x.table_);
+            return *this;
+        }
+
+#if !defined(BOOST_NO_RVALUE_REFERENCES)
+        unordered_map& operator=(unordered_map&& x)
+        {
+            table_.move_assign(x.table_);
+            return *this;
+        }
+#endif
+#endif
 
 #if !defined(BOOST_NO_0X_HDR_INITIALIZER_LIST)
         unordered_map& operator=(std::initializer_list<value_type>);
@@ -184,12 +203,12 @@ namespace unordered
 
         iterator begin()
         {
-            return iterator(table_.begin());
+            return table_.begin();
         }
 
         const_iterator begin() const
         {
-            return const_iterator(table_.begin());
+            return table_.begin();
         }
 
         iterator end()
@@ -204,7 +223,7 @@ namespace unordered
 
         const_iterator cbegin() const
         {
-            return const_iterator(table_.begin());
+            return table_.begin();
         }
 
         const_iterator cend() const
@@ -214,19 +233,114 @@ namespace unordered
 
         // emplace
 
-#if defined(BOOST_UNORDERED_STD_FORWARD_MOVE)
+#if defined(BOOST_UNORDERED_VARIADIC_MOVE)
         template <class... Args>
         std::pair<iterator, bool> emplace(Args&&... args)
         {
-            return table_.emplace(std::forward<Args>(args)...);
+            return table_.emplace(boost::forward<Args>(args)...);
         }
 
         template <class... Args>
         iterator emplace_hint(const_iterator, Args&&... args)
         {
-            return iterator(table_.emplace(std::forward<Args>(args)...).first);
+            return table_.emplace(boost::forward<Args>(args)...).first;
         }
 #else
+
+#if !BOOST_WORKAROUND(__SUNPRO_CC, BOOST_TESTED_AT(0x5100))
+
+        // 0 argument emplace requires special treatment in case
+        // the container is instantiated with a value type that
+        // doesn't have a default constructor.
+
+        std::pair<iterator, bool> emplace(
+                boost::unordered::detail::empty_emplace
+                    = boost::unordered::detail::empty_emplace(),
+                value_type v = value_type())
+        {
+            return this->emplace(boost::move(v));
+        }
+
+        iterator emplace_hint(const_iterator hint,
+                boost::unordered::detail::empty_emplace
+                    = boost::unordered::detail::empty_emplace(),
+                value_type v = value_type()
+            )
+        {
+            return this->emplace_hint(hint, boost::move(v));
+        }
+
+#endif
+
+        template <typename A0>
+        std::pair<iterator, bool> emplace(BOOST_FWD_REF(A0) a0)
+        {
+            return table_.emplace(
+                boost::unordered::detail::create_emplace_args(
+                    boost::forward<A0>(a0))
+            );
+        }
+
+        template <typename A0>
+        iterator emplace_hint(const_iterator, BOOST_FWD_REF(A0) a0)
+        {
+            return table_.emplace(
+                boost::unordered::detail::create_emplace_args(
+                    boost::forward<A0>(a0))
+            ).first;
+        }
+
+        template <typename A0, typename A1>
+        std::pair<iterator, bool> emplace(
+            BOOST_FWD_REF(A0) a0,
+            BOOST_FWD_REF(A1) a1)
+        {
+            return table_.emplace(
+                boost::unordered::detail::create_emplace_args(
+                    boost::forward<A0>(a0),
+                    boost::forward<A1>(a1))
+            );
+        }
+
+        template <typename A0, typename A1>
+        iterator emplace_hint(const_iterator,
+            BOOST_FWD_REF(A0) a0,
+            BOOST_FWD_REF(A1) a1)
+        {
+            return table_.emplace(
+                boost::unordered::detail::create_emplace_args(
+                    boost::forward<A0>(a0),
+                    boost::forward<A1>(a1))
+            ).first;
+        }
+
+        template <typename A0, typename A1, typename A2>
+        std::pair<iterator, bool> emplace(
+            BOOST_FWD_REF(A0) a0,
+            BOOST_FWD_REF(A1) a1,
+            BOOST_FWD_REF(A2) a2)
+        {
+            return table_.emplace(
+                boost::unordered::detail::create_emplace_args(
+                    boost::forward<A0>(a0),
+                    boost::forward<A1>(a1),
+                    boost::forward<A2>(a2))
+            );
+        }
+
+        template <typename A0, typename A1, typename A2>
+        iterator emplace_hint(const_iterator,
+            BOOST_FWD_REF(A0) a0,
+            BOOST_FWD_REF(A1) a1,
+            BOOST_FWD_REF(A2) a2)
+        {
+            return table_.emplace(
+                boost::unordered::detail::create_emplace_args(
+                    boost::forward<A0>(a0),
+                    boost::forward<A1>(a1),
+                    boost::forward<A2>(a2))
+            ).first;
+        }
 
 #define BOOST_UNORDERED_EMPLACE(z, n, _)                                    \
             template <                                                      \
@@ -251,38 +365,17 @@ namespace unordered
                     BOOST_PP_ENUM_##z(n, BOOST_UNORDERED_FWD_PARAM, a)      \
             )                                                               \
             {                                                               \
-                return iterator(table_.emplace(                             \
+                return table_.emplace(                                      \
                     boost::unordered::detail::create_emplace_args(          \
                         BOOST_PP_ENUM_##z(n, BOOST_UNORDERED_CALL_FORWARD,  \
                             a)                                              \
-                )).first);                                                  \
+                )).first;                                                   \
             }
 
-        BOOST_PP_REPEAT_FROM_TO(1, BOOST_UNORDERED_EMPLACE_LIMIT,
+        BOOST_PP_REPEAT_FROM_TO(4, BOOST_UNORDERED_EMPLACE_LIMIT,
             BOOST_UNORDERED_EMPLACE, _)
 
 #undef BOOST_UNORDERED_EMPLACE
-
-#if !BOOST_WORKAROUND(__SUNPRO_CC, BOOST_TESTED_AT(0x5100))
-
-        std::pair<iterator, bool> emplace(
-                boost::unordered::detail::empty_emplace
-                    = boost::unordered::detail::empty_emplace(),
-                value_type v = value_type())
-        {
-            return this->emplace(boost::move(v));
-        }
-
-        iterator emplace_hint(const_iterator hint,
-                boost::unordered::detail::empty_emplace
-                    = boost::unordered::detail::empty_emplace(),
-                value_type v = value_type()
-            )
-        {
-            return this->emplace_hint(hint, boost::move(v));
-        }
-
-#endif
 
 #endif
 
@@ -372,7 +465,8 @@ namespace unordered
 
         size_type bucket(const key_type& k) const
         {
-            return table_.hash_function()(k) % table_.bucket_count_;
+            return table::to_bucket(table_.bucket_count_,
+                table_.hash(k));
         }
 
         local_iterator begin(size_type n)
@@ -421,6 +515,7 @@ namespace unordered
         float load_factor() const;
         void max_load_factor(float);
         void rehash(size_type);
+        void reserve(size_type);
 
 #if !BOOST_WORKAROUND(__BORLANDC__, < 0x0582)
         friend bool operator==<K,T,H,P,A>(
@@ -433,8 +528,9 @@ namespace unordered
     template <class K, class T, class H, class P, class A>
     class unordered_multimap
     {
+#if defined(BOOST_UNORDERED_USE_MOVE)
         BOOST_COPYABLE_AND_MOVABLE(unordered_multimap)
-
+#endif
     public:
 
         typedef K key_type;
@@ -446,15 +542,9 @@ namespace unordered
 
     private:
 
-        typedef typename boost::unordered::detail::rebind_wrap<
-                allocator_type, value_type>::type
-            value_allocator;
-
-        typedef boost::unordered::detail::allocator_traits<value_allocator>
-            allocator_traits;
-
-        typedef boost::unordered::detail::multimap<value_allocator, K, H, P>
-            types;
+        typedef boost::unordered::detail::multimap<A, K, T, H, P> types;
+        typedef typename types::allocator value_allocator;
+        typedef typename types::traits allocator_traits;
         typedef typename types::table table;
 
     public:
@@ -513,10 +603,17 @@ namespace unordered
 
         unordered_multimap(unordered_multimap const&, allocator_type const&);
 
+#if defined(BOOST_UNORDERED_USE_MOVE)
         unordered_multimap(BOOST_RV_REF(unordered_multimap) other)
             : table_(other.table_, boost::unordered::detail::move_tag())
         {
         }
+#elif !defined(BOOST_NO_RVALUE_REFERENCES)
+        unordered_multimap(unordered_multimap&& other)
+            : table_(other.table_, boost::unordered::detail::move_tag())
+        {
+        }
+#endif
 
 #if !defined(BOOST_NO_RVALUE_REFERENCES)
         unordered_multimap(unordered_multimap&&, allocator_type const&);
@@ -537,6 +634,7 @@ namespace unordered
 
         // Assign
 
+#if defined(BOOST_UNORDERED_USE_MOVE)
         unordered_multimap& operator=(
                 BOOST_COPY_ASSIGN_REF(unordered_multimap) x)
         {
@@ -549,6 +647,21 @@ namespace unordered
             table_.move_assign(x.table_);
             return *this;
         }
+#else
+        unordered_multimap& operator=(unordered_multimap const& x)
+        {
+            table_.assign(x.table_);
+            return *this;
+        }
+
+#if !defined(BOOST_NO_RVALUE_REFERENCES)
+        unordered_multimap& operator=(unordered_multimap&& x)
+        {
+            table_.move_assign(x.table_);
+            return *this;
+        }
+#endif
+#endif
 
 #if !defined(BOOST_NO_0X_HDR_INITIALIZER_LIST)
         unordered_multimap& operator=(std::initializer_list<value_type>);
@@ -577,12 +690,12 @@ namespace unordered
 
         iterator begin()
         {
-            return iterator(table_.begin());
+            return table_.begin();
         }
 
         const_iterator begin() const
         {
-            return const_iterator(table_.begin());
+            return table_.begin();
         }
 
         iterator end()
@@ -597,7 +710,7 @@ namespace unordered
 
         const_iterator cbegin() const
         {
-            return const_iterator(table_.begin());
+            return table_.begin();
         }
 
         const_iterator cend() const
@@ -607,19 +720,114 @@ namespace unordered
 
         // emplace
 
-#if defined(BOOST_UNORDERED_STD_FORWARD_MOVE)
+#if defined(BOOST_UNORDERED_VARIADIC_MOVE)
         template <class... Args>
         iterator emplace(Args&&... args)
         {
-            return iterator(table_.emplace(std::forward<Args>(args)...));
+            return table_.emplace(boost::forward<Args>(args)...);
         }
 
         template <class... Args>
         iterator emplace_hint(const_iterator, Args&&... args)
         {
-            return iterator(table_.emplace(std::forward<Args>(args)...));
+            return table_.emplace(boost::forward<Args>(args)...);
         }
 #else
+
+#if !BOOST_WORKAROUND(__SUNPRO_CC, BOOST_TESTED_AT(0x5100))
+
+        // 0 argument emplace requires special treatment in case
+        // the container is instantiated with a value type that
+        // doesn't have a default constructor.
+
+        iterator emplace(
+                boost::unordered::detail::empty_emplace
+                    = boost::unordered::detail::empty_emplace(),
+                value_type v = value_type())
+        {
+            return this->emplace(boost::move(v));
+        }
+
+        iterator emplace_hint(const_iterator hint,
+                boost::unordered::detail::empty_emplace
+                    = boost::unordered::detail::empty_emplace(),
+                value_type v = value_type()
+            )
+        {
+            return this->emplace_hint(hint, boost::move(v));
+        }
+
+#endif
+
+        template <typename A0>
+        iterator emplace(BOOST_FWD_REF(A0) a0)
+        {
+            return table_.emplace(
+                boost::unordered::detail::create_emplace_args(
+                    boost::forward<A0>(a0))
+            );
+        }
+
+        template <typename A0>
+        iterator emplace_hint(const_iterator, BOOST_FWD_REF(A0) a0)
+        {
+            return table_.emplace(
+                boost::unordered::detail::create_emplace_args(
+                    boost::forward<A0>(a0))
+            );
+        }
+
+        template <typename A0, typename A1>
+        iterator emplace(
+            BOOST_FWD_REF(A0) a0,
+            BOOST_FWD_REF(A1) a1)
+        {
+            return table_.emplace(
+                boost::unordered::detail::create_emplace_args(
+                    boost::forward<A0>(a0),
+                    boost::forward<A1>(a1))
+            );
+        }
+
+        template <typename A0, typename A1>
+        iterator emplace_hint(const_iterator,
+            BOOST_FWD_REF(A0) a0,
+            BOOST_FWD_REF(A1) a1)
+        {
+            return table_.emplace(
+                boost::unordered::detail::create_emplace_args(
+                    boost::forward<A0>(a0),
+                    boost::forward<A1>(a1))
+            );
+        }
+
+        template <typename A0, typename A1, typename A2>
+        iterator emplace(
+            BOOST_FWD_REF(A0) a0,
+            BOOST_FWD_REF(A1) a1,
+            BOOST_FWD_REF(A2) a2)
+        {
+            return table_.emplace(
+                boost::unordered::detail::create_emplace_args(
+                    boost::forward<A0>(a0),
+                    boost::forward<A1>(a1),
+                    boost::forward<A2>(a2))
+            );
+        }
+
+        template <typename A0, typename A1, typename A2>
+        iterator emplace_hint(const_iterator,
+            BOOST_FWD_REF(A0) a0,
+            BOOST_FWD_REF(A1) a1,
+            BOOST_FWD_REF(A2) a2)
+        {
+            return table_.emplace(
+                boost::unordered::detail::create_emplace_args(
+                    boost::forward<A0>(a0),
+                    boost::forward<A1>(a1),
+                    boost::forward<A2>(a2))
+            );
+        }
 
 #define BOOST_UNORDERED_EMPLACE(z, n, _)                                    \
             template <                                                      \
@@ -629,11 +837,11 @@ namespace unordered
                     BOOST_PP_ENUM_##z(n, BOOST_UNORDERED_FWD_PARAM, a)      \
             )                                                               \
             {                                                               \
-                return iterator(table_.emplace(                             \
+                return table_.emplace(                                      \
                     boost::unordered::detail::create_emplace_args(          \
                         BOOST_PP_ENUM_##z(n, BOOST_UNORDERED_CALL_FORWARD,  \
                             a)                                              \
-                )));                                                        \
+                ));                                                         \
             }                                                               \
                                                                             \
             template <                                                      \
@@ -644,38 +852,17 @@ namespace unordered
                     BOOST_PP_ENUM_##z(n, BOOST_UNORDERED_FWD_PARAM, a)      \
             )                                                               \
             {                                                               \
-                return iterator(table_.emplace(                             \
+                return table_.emplace(                                      \
                     boost::unordered::detail::create_emplace_args(          \
                         BOOST_PP_ENUM_##z(n, BOOST_UNORDERED_CALL_FORWARD,  \
                             a)                                              \
-                )));                                                        \
+                ));                                                         \
             }
 
-        BOOST_PP_REPEAT_FROM_TO(1, BOOST_UNORDERED_EMPLACE_LIMIT,
+        BOOST_PP_REPEAT_FROM_TO(4, BOOST_UNORDERED_EMPLACE_LIMIT,
             BOOST_UNORDERED_EMPLACE, _)
 
 #undef BOOST_UNORDERED_EMPLACE
-
-#if !BOOST_WORKAROUND(__SUNPRO_CC, BOOST_TESTED_AT(0x5100))
-
-        iterator emplace(
-                boost::unordered::detail::empty_emplace
-                    = boost::unordered::detail::empty_emplace(),
-                value_type v = value_type())
-        {
-            return iterator(this->emplace(boost::move(v)));
-        }
-
-        iterator emplace_hint(const_iterator hint,
-                boost::unordered::detail::empty_emplace
-                    = boost::unordered::detail::empty_emplace(),
-                value_type v = value_type()
-            )
-        {
-            return iterator(this->emplace_hint(hint, boost::move(v)));
-        }
-
-#endif
 
 #endif
 
@@ -761,7 +948,8 @@ namespace unordered
 
         size_type bucket(const key_type& k) const
         {
-            return table_.hash_function()(k) % table_.bucket_count_;
+            return table::to_bucket(table_.bucket_count_,
+                table_.hash(k));
         }
 
         local_iterator begin(size_type n)
@@ -810,6 +998,7 @@ namespace unordered
         float load_factor() const;
         void max_load_factor(float);
         void rehash(size_type);
+        void reserve(size_type);
 
 #if !BOOST_WORKAROUND(__BORLANDC__, < 0x0582)
         friend bool operator==<K,T,H,P,A>(
@@ -954,7 +1143,7 @@ namespace unordered
     typename unordered_map<K,T,H,P,A>::iterator
         unordered_map<K,T,H,P,A>::erase(const_iterator position)
     {
-        return iterator(table_.erase(position.node_));
+        return table_.erase(position);
     }
 
     template <class K, class T, class H, class P, class A>
@@ -969,7 +1158,7 @@ namespace unordered
         unordered_map<K,T,H,P,A>::erase(
             const_iterator first, const_iterator last)
     {
-        return iterator(table_.erase_range(first.node_, last.node_));
+        return table_.erase_range(first, last);
     }
 
     template <class K, class T, class H, class P, class A>
@@ -1027,14 +1216,14 @@ namespace unordered
     typename unordered_map<K,T,H,P,A>::iterator
         unordered_map<K,T,H,P,A>::find(const key_type& k)
     {
-        return iterator(table_.find_node(k));
+        return table_.find_node(k);
     }
 
     template <class K, class T, class H, class P, class A>
     typename unordered_map<K,T,H,P,A>::const_iterator
         unordered_map<K,T,H,P,A>::find(const key_type& k) const
     {
-        return const_iterator(table_.find_node(k));
+        return table_.find_node(k);
     }
 
     template <class K, class T, class H, class P, class A>
@@ -1046,7 +1235,7 @@ namespace unordered
             CompatibleHash const& hash,
             CompatiblePredicate const& eq)
     {
-        return iterator(table_.generic_find_node(k, hash, eq));
+        return table_.generic_find_node(k, hash, eq);
     }
 
     template <class K, class T, class H, class P, class A>
@@ -1058,7 +1247,7 @@ namespace unordered
             CompatibleHash const& hash,
             CompatiblePredicate const& eq) const
     {
-        return const_iterator(table_.generic_find_node(k, hash, eq));
+        return table_.generic_find_node(k, hash, eq);
     }
 
     template <class K, class T, class H, class P, class A>
@@ -1111,6 +1300,12 @@ namespace unordered
     void unordered_map<K,T,H,P,A>::rehash(size_type n)
     {
         table_.rehash(n);
+    }
+
+    template <class K, class T, class H, class P, class A>
+    void unordered_map<K,T,H,P,A>::reserve(size_type n)
+    {
+        table_.reserve(n);
     }
 
     template <class K, class T, class H, class P, class A>
@@ -1281,7 +1476,7 @@ namespace unordered
     typename unordered_multimap<K,T,H,P,A>::iterator
         unordered_multimap<K,T,H,P,A>::erase(const_iterator position)
     {
-        return iterator(table_.erase(position.node_));
+        return table_.erase(position);
     }
 
     template <class K, class T, class H, class P, class A>
@@ -1296,7 +1491,7 @@ namespace unordered
         unordered_multimap<K,T,H,P,A>::erase(
             const_iterator first, const_iterator last)
     {
-        return iterator(table_.erase_range(first.node_, last.node_));
+        return table_.erase_range(first, last);
     }
 
     template <class K, class T, class H, class P, class A>
@@ -1333,14 +1528,14 @@ namespace unordered
     typename unordered_multimap<K,T,H,P,A>::iterator
         unordered_multimap<K,T,H,P,A>::find(const key_type& k)
     {
-        return iterator(table_.find_node(k));
+        return table_.find_node(k);
     }
 
     template <class K, class T, class H, class P, class A>
     typename unordered_multimap<K,T,H,P,A>::const_iterator
         unordered_multimap<K,T,H,P,A>::find(const key_type& k) const
     {
-        return const_iterator(table_.find_node(k));
+        return table_.find_node(k);
     }
 
     template <class K, class T, class H, class P, class A>
@@ -1352,7 +1547,7 @@ namespace unordered
             CompatibleHash const& hash,
             CompatiblePredicate const& eq)
     {
-        return iterator(table_.generic_find_node(k, hash, eq));
+        return table_.generic_find_node(k, hash, eq);
     }
 
     template <class K, class T, class H, class P, class A>
@@ -1364,7 +1559,7 @@ namespace unordered
             CompatibleHash const& hash,
             CompatiblePredicate const& eq) const
     {
-        return const_iterator(table_.generic_find_node(k, hash, eq));
+        return table_.generic_find_node(k, hash, eq);
     }
 
     template <class K, class T, class H, class P, class A>
@@ -1417,6 +1612,12 @@ namespace unordered
     void unordered_multimap<K,T,H,P,A>::rehash(size_type n)
     {
         table_.rehash(n);
+    }
+
+    template <class K, class T, class H, class P, class A>
+    void unordered_multimap<K,T,H,P,A>::reserve(size_type n)
+    {
+        table_.reserve(n);
     }
 
     template <class K, class T, class H, class P, class A>
