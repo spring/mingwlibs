@@ -115,7 +115,7 @@ cd ${MINGWLIBS_DIR}
 git remote add cloud git@github.com:spring/mingwlibs.git
 git add --all
 git commit -m "boost update"
-git push cloud
+git push cloud || exit 1
 
 
 # cleanup
@@ -124,3 +124,5 @@ echo "-- cleanup"
 rm -rf ${BOOST_BUILD_DIR}
 rm -rf ${BOOST_DIR}
 rm -rf ${MINGWLIBS_DIR}
+
+exit 0
