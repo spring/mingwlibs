@@ -14,7 +14,7 @@ BOOST_CONF=./user-config.jam
 
 # x86 or x86_64
 MINGW_GPP=/usr/bin/i686-mingw32-g++
-
+GCC_VERSION=$(${MINGW_GPP} -dumpversion)
 
 BOOST_LIBS_ARG=""
 for LIB in $BOOST_LIBS
@@ -25,10 +25,21 @@ done
 
 #############################################################################################################
 
+# cleanup
+echo -e "\n---------------------------------------------------"
+echo "-- clear"
+rm -rf ${BOOST_BUILD_DIR}
+rm -rf ${BOOST_DIR}
+rm -rf ${MINGWLIBS_DIR}
+
+
 # git clone mingwlibs repo (needed for later uploading)
 echo -e "\n---------------------------------------------------"
 echo "-- clone git repo"
-git clone -l -s .  ${MINGWLIBS_DIR} 
+git clone -l -s -n .  ${MINGWLIBS_DIR}
+cd ${MINGWLIBS_DIR}
+git fetch
+git checkout master
 
 
 # Setup final structure
@@ -112,9 +123,11 @@ mv "${MINGWLIBS_DIR}lib/libboost_thread_win32-mt.a" "${MINGWLIBS_DIR}lib/libboos
 echo -e "\n---------------------------------------------------"
 echo "-- git push"
 cd ${MINGWLIBS_DIR}
+BOOST_VERSION=$(grep "#define BOOST_VERSION " ./include/boost/version.hpp | awk '{print $3}')
+BOOST_VERSTR="$((BOOST_VERSION / 100000)).$((BOOST_VERSION / 100 % 1000)).$((BOOST_VERSION % 100))"
 git remote add cloud git@github.com:spring/mingwlibs.git
 git add --all
-git commit -m "boost update"
+git commit -m "boost update (boost: ${BOOST_VERSTR} gcc: ${GCC_VERSION})"
 git push cloud || exit 1
 
 
