@@ -6,6 +6,7 @@ set -e
 BOOST_DIR=/tmp/boost/
 BOOST_BUILD_DIR=/tmp/build-boost/
 MINGWLIBS_DIR=/tmp/mingwlibs/
+BOOST_URL=http://prdownloads.sourceforge.net/boost/boost/1.50.0/boost_1_50_0.tar.bz2
 
 # spring's boost dependencies
 BOOST_LIBS="test thread system filesystem regex program_options signals"
@@ -57,9 +58,8 @@ mkdir -p ${MINGWLIBS_DIR}include/boost/ 2>/dev/null
 # Gentoo related - retrieve boost's tarball
 echo -e "\n---------------------------------------------------"
 echo "-- fetching boost's tarball"
-command -v emerge >/dev/null 2>&1 || { echo >&2 "Gentoo needed. Aborting."; exit 1; } 
 
-emerge --pretend --fetchonly --nodeps --quiet boost |xargs wget --no-verbose -nc -nd -P /tmp
+wget -P /tmp -N --no-verbose $BOOST_URL
 ls -t /tmp/boost_*.tar.* |head -1| xargs tar -xa -C ${BOOST_DIR} -f
 
 # bootstrap bjam
