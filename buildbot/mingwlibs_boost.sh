@@ -6,7 +6,8 @@ set -e
 BOOST_DIR=/tmp/boost/
 BOOST_BUILD_DIR=/tmp/build-boost/
 MINGWLIBS_DIR=/tmp/mingwlibs/
-BOOST_URL=http://prdownloads.sourceforge.net/boost/boost/1.50.0/boost_1_50_0.tar.bz2
+BOOST_FILE=boost_1_50_0.tar.bz2
+BOOST_DL_PREFIX=http://prdownloads.sourceforge.net/boost/boost/1.50.0/
 
 # spring's boost dependencies
 BOOST_LIBS="test thread system filesystem regex program_options signals"
@@ -59,8 +60,8 @@ mkdir -p ${MINGWLIBS_DIR}include/boost/ 2>/dev/null
 echo -e "\n---------------------------------------------------"
 echo "-- fetching boost's tarball"
 
-wget -P /tmp -N --no-verbose $BOOST_URL
-ls -t /tmp/boost_*.tar.* |head -1| xargs tar -xa -C ${BOOST_DIR} -f
+wget -P /tmp -N --no-verbose ${BOOST_DL_PREFIX}${BOOST_FILE}
+tar -xa -C ${BOOST_DIR} -f /tmp/${BOOST_FILE}
 
 # bootstrap bjam
 echo -e "\n---------------------------------------------------"
