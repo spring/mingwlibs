@@ -59,7 +59,7 @@ echo -e "\n---------------------------------------------------"
 echo "-- fetching boost's tarball"
 command -v emerge >/dev/null 2>&1 || { echo >&2 "Gentoo needed. Aborting."; exit 1; } 
 
-emerge --pretend --fetchonly --nodeps --quiet boost |xargs wget -nc -nd -P /tmp
+emerge --pretend --fetchonly --nodeps --quiet boost |xargs wget --no-verbose -nc -nd -P /tmp
 ls -t /tmp/boost_*.tar.* |head -1| xargs tar -xa -C ${BOOST_DIR} -f
 
 # bootstrap bjam
