@@ -58,11 +58,9 @@ mkdir -p ${MINGWLIBS_DIR}include/boost/ 2>/dev/null
 echo -e "\n---------------------------------------------------"
 echo "-- fetching boost's tarball"
 command -v emerge >/dev/null 2>&1 || { echo >&2 "Gentoo needed. Aborting."; exit 1; } 
-emerge boost --fetchonly --nodeps
-DISTDIR=/usr/portage/distfiles
-source /etc/portage/make.conf
-find ${DISTDIR} -iname "boost_*.tar.*" -print 2>/dev/null | xargs tar -xa -C ${BOOST_DIR} -f
 
+emerge --pretend --fetchonly --nodeps --quiet boost |xargs wget -nc -nd -P /tmp
+find /tmp -iname "boost_*.tar.*" -print 2>/dev/null | xargs tar -xa -C ${BOOST_DIR} -f
 
 # bootstrap bjam
 echo -e "\n---------------------------------------------------"
