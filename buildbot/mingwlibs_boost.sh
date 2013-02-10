@@ -10,7 +10,7 @@ BOOST_FILE=boost_1_50_0.tar.bz2
 BOOST_DL_PREFIX=http://prdownloads.sourceforge.net/boost/boost/1.50.0/
 
 # spring's boost dependencies
-BOOST_LIBS="test thread system regex program_options signals"
+BOOST_LIBS="test thread system regex program_options signals chrono"
 SPRING_HEADERS="${BOOST_LIBS} format ptr_container spirit algorithm date_time asio"
 ASSIMP_HEADERS="math/common_factor smart_ptr"
 BOOST_HEADERS="${SPRING_HEADERS} ${ASSIMP_HEADERS}"
