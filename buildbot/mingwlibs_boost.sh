@@ -15,7 +15,7 @@ BOOST_HEADERS="${SPRING_HEADERS} ${ASSIMP_HEADERS}"
 BOOST_CONF=./user-config.jam
 
 # x86 or x86_64
-MINGW_GPP=/usr/bin/i686-mingw32-g++
+MINGW_GPP=/usr/bin/i686-w64-mingw32-g++
 GCC_VERSION=$(${MINGW_GPP} -dumpversion)
 
 BOOST_LIBS_ARG=""
