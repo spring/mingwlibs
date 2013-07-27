@@ -41,7 +41,7 @@ echo "-- clone git repo"
 git clone -l -s -n .  ${MINGWLIBS_DIR}
 cd ${MINGWLIBS_DIR}
 git fetch
-git checkout master
+git checkout -f master
 
 
 # Setup final structure
