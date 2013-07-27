@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 
@@ -6,7 +6,7 @@ set -e
 BOOST_DIR=/tmp/boost/
 BOOST_BUILD_DIR=/tmp/build-boost/
 MINGWLIBS_DIR=/tmp/mingwlibs/
-BOOST_FILE=boost_1_50_0.tar.bz2
+BOOST_FILE=boost_1_53_0.tar.bz2
 BOOST_DL_PREFIX=http://prdownloads.sourceforge.net/boost/boost/1.50.0/
 
 # spring's boost dependencies
@@ -14,7 +14,7 @@ BOOST_LIBS="test thread system regex filesystem program_options signals chrono"
 SPRING_HEADERS="${BOOST_LIBS} format ptr_container spirit algorithm date_time asio signals2"
 ASSIMP_HEADERS="math/common_factor smart_ptr"
 BOOST_HEADERS="${SPRING_HEADERS} ${ASSIMP_HEADERS}"
-BOOST_CONF=./user-config.jam
+BOOST_CONF=${BOOST_BUILD_DIR}/user-config.jam
 
 # x86 or x86_64
 MINGW_GPP=/usr/bin/i686-w64-mingw32-g++
@@ -42,18 +42,18 @@ echo -e "\n---------------------------------------------------"
 echo "-- clone git repo"
 git clone -l -s -n .  ${MINGWLIBS_DIR}
 cd ${MINGWLIBS_DIR}
-#git fetch
-#git checkout -f master
+git fetch
+git checkout -f master
 
 
 # Setup final structure
 echo -e "\n---------------------------------------------------"
 echo "-- setup dirs"
-mkdir -p ${BOOST_DIR} 2>/dev/null
-rm -f ${MINGWLIBS_DIR}lib/libboost* 2>/dev/null
-rm -Rf ${MINGWLIBS_DIR}include/boost 2>/dev/null
-mkdir -p ${MINGWLIBS_DIR}lib/ 2>/dev/null
-mkdir -p ${MINGWLIBS_DIR}include/boost/ 2>/dev/null
+mkdir -p ${BOOST_DIR}
+rm -f ${MINGWLIBS_DIR}lib/libboost*
+rm -rf ${MINGWLIBS_DIR}include/boost
+mkdir -p ${MINGWLIBS_DIR}lib/
+mkdir -p ${MINGWLIBS_DIR}include/boost/
 
 
 # Gentoo related - retrieve boost's tarball
@@ -61,20 +61,23 @@ echo -e "\n---------------------------------------------------"
 echo "-- fetching boost's tarball"
 
 wget -P /tmp -N --no-verbose ${BOOST_DL_PREFIX}${BOOST_FILE}
+
+echo -e "\n---------------------------------------------------"
+echo "-- extracting boost's tarball"
 tar -xa -C ${BOOST_DIR} -f /tmp/${BOOST_FILE}
 
 # bootstrap bjam
 echo -e "\n---------------------------------------------------"
 echo "-- bootstrap bjam"
 cd ${BOOST_DIR}/boost_*
-./bootstrap.sh || exit 1
+./bootstrap.sh
 
 
 # Building bcp - boosts own filtering tool
 echo -e "\n---------------------------------------------------"
 echo "-- creating bcp"
 cd tools/bcp
-../../bjam --build-dir=${BOOST_BUILD_DIR} || exit 1
+../../bjam --build-dir=${BOOST_BUILD_DIR}
 cd ../..
 cp $(ls ${BOOST_BUILD_DIR}/boost/*/tools/bcp/*/*/*/bcp) .
 
@@ -97,7 +100,6 @@ echo "using gcc : : ${MINGW_GPP} ;" > ${BOOST_CONF}
     threading=multi \
     link=static \
     toolset=gcc \
-|| exit 1
 
 
 # Copying the headers to MinGW-libs
@@ -130,7 +132,7 @@ BOOST_VERSTR="$((BOOST_VERSION / 100000)).$((BOOST_VERSION / 100 % 1000)).$((BOO
 git remote add cloud git@github.com:spring/mingwlibs.git
 git add --all
 git commit -m "boost update (boost: ${BOOST_VERSTR} gcc: ${GCC_VERSION})"
-git push cloud || exit 1
+git push cloud
 
 
 # cleanup
@@ -140,4 +142,3 @@ rm -rf ${BOOST_BUILD_DIR}
 rm -rf ${BOOST_DIR}
 rm -rf ${MINGWLIBS_DIR}
 
-exit 0
