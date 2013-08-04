@@ -63,7 +63,18 @@ mkdir -p ${MINGWLIBS_DIR}include/boost/
 echo -e "\n---------------------------------------------------"
 echo "-- fetching boost's tarball"
 
-wget -P /tmp -N --no-verbose ${BOOST_DL}
+set +e
+EMERGE=$(which emerge)
+set -e
+
+if [ -n "$EMERGE" ] && [ -x "$EMERGE" ]; then
+	emerge boost --fetchonly &>/dev/null
+	source /etc/portage/make.conf
+	BOOST_FILE=$(find ${DISTDIR} -iname "boost_*.tar.*" -print 2)
+else
+	wget -P /tmp -N --no-verbose ${BOOST_DL}
+fi
+
 
 echo -e "\n---------------------------------------------------"
 echo "-- extracting boost's tarball"
