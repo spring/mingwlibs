@@ -6,8 +6,11 @@ set -e
 BOOST_DIR=/tmp/boost/
 BOOST_BUILD_DIR=/tmp/build-boost/
 MINGWLIBS_DIR=/tmp/mingwlibs/
-BOOST_FILE=boost_1_53_0.tar.bz2
-BOOST_DL_PREFIX=http://prdownloads.sourceforge.net/boost/boost/1.50.0/
+BOOST_MAJOR=1
+BOOST_MINOR=53
+BOOST_PATCH=0
+BOOST_FILE=boost_${BOOST_MAJOR}_${BOOST_MINOR}_${BOOST_PATCH}.tar.bz2?download
+BOOST_DL=http://sourceforge.net/projects/boost/files/boost/${BOOST_MAJOR}.${BOOST_MINOR}.${BOOST_PATCH}/$BOOST_FILE
 
 # spring's boost dependencies
 BOOST_LIBS="test thread system regex filesystem program_options signals chrono"
@@ -60,7 +63,7 @@ mkdir -p ${MINGWLIBS_DIR}include/boost/
 echo -e "\n---------------------------------------------------"
 echo "-- fetching boost's tarball"
 
-wget -P /tmp -N --no-verbose ${BOOST_DL_PREFIX}${BOOST_FILE}
+wget -P /tmp -N --no-verbose ${BOOST_DL}
 
 echo -e "\n---------------------------------------------------"
 echo "-- extracting boost's tarball"
