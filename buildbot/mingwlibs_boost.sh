@@ -68,7 +68,7 @@ EMERGE=$(which emerge)
 set -e
 
 if [ -n "$EMERGE" ] && [ -x "$EMERGE" ]; then
-	emerge boost --fetchonly &>/dev/null
+	$EMERGE boost --fetchonly &>/dev/null
 	source /etc/portage/make.conf
 	BOOST_FILE=$(find ${DISTDIR} -iname "boost_*.tar.*" -print 2)
 else
