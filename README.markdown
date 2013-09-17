@@ -64,36 +64,6 @@ used to create MinGW32 import libraries for `DevIL.dll`, `ILU.dll` and `ILUT.dll
 This creates `libdevil.a`, `libilu.a`, `libilut.a` and a number of `.def` files.
 You can throw away the `.def` files and move the `lib*.a` files to `lib/`.
 
-`il.h` and `ilu.h` contain constructs which do not compile on certain GCC
-configurations so they have been fixed using the following command:
-
-	sed -i 's/(ILvoid)/()/g' mingwlibs/include/IL/{il.h,ilu.h}
-
-Additionally `il.h` specifies `__declspec(dllimport) __attribute__(__stdcall__)`
-for its (and ILUs) functions, which causes (at least) GCC 4.3 to look for
-undecorated functions in the import library, which it will not find.
-
-This is solved by the following modification:
-
-	--- il.h.orig   2007-04-17 23:00:59.000000000 +0200
-	+++ il.h        2007-04-18 13:02:55.000000000 +0200
-	@@ -386,7 +386,7 @@
-	 // This is from Win32s <wingdi.h> and <winnt.h>
-	 #if defined(__LCC__)
-	        #define ILAPI __stdcall
-	-#elif defined(_WIN32) //changed 20031221 to fix bug 840421
-	+#elif defined(_MSC_VER) //changed 20031221 to fix bug 840421
-	        #ifdef IL_STATIC_LIB
-	                #define ILAPI
-	        #else
-
-The original `il.h` and `ilu.h` are included too as `il.h.orig` and `ilu.h.orig`.
-
-`imagehlp.h` had an identical problem so it is included in this package. It
-should be picked up automatically because of the order of the include paths,
-ie. `mingwlibs/include` takes precedence over `%MINGDIR%/include`.
-It can be found in from `w32api-3.9` on <http://www.mingw.org>.
-
 #### Cross-Compiling Boost
 
 Download [the latest boost sources archive](http://www.boost.org/users/download/).
@@ -133,10 +103,6 @@ and optionally mention the new version in the list below.
 
 	<http://www.7-zip.org>
 
-* __Dos2Unix__ (ancient, pre 2000)
-
-	<http://www.bastet.com>
-
 * __Boost__ (see boost_crosscompile.sh for the used version)
 
 	<http://www.boost.org>
@@ -144,7 +110,7 @@ and optionally mention the new version in the list below.
 * __Curl__ 7.24.0
 	<http://curl.haxx.se/>
 
-* __Devil__ 1.6.8-rc2 (even though the DLL properties say 1.6.5 ...)
+* __Devil__ 1.7.8
 
 	<http://prdownloads.sourceforge.net/openil/Devil-1.6.8-rc2-win-.zip?download>
 
@@ -160,7 +126,7 @@ and optionally mention the new version in the list below.
 	was included showed small misaligned fonts (works fine with 2.3.5 on linux.)
 	Do not know where I originally downloaded 2.1.10.2079
 
-* __GLEW__
+* __GLEW__ 1.5.8.0
 
 	<http://glew.sourceforge.net>
 
@@ -179,12 +145,6 @@ and optionally mention the new version in the list below.
 * __pandoc__ 1.8.1.2
 
 	<http://johnmacfarlane.net/pandoc/>
-
-* __Python__ 2.5.1
-
-	<http://www.python.org/ftp/python/2.5.1/python-2.5.1.msi>
-
-	(got `python25.dll` from `C:\Windows\System32`)
 
 * __Zlib__ 1.2.7
 
