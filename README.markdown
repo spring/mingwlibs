@@ -79,19 +79,6 @@ and optionally mention the new version in the list below.
 
 ### Current versions of included libraries and binaries
 
-* GNU __md5sum__ (PCP patchlevel 2) 1.22
-
-	<http://etree.org/md5com.html>
-
-	This version has been modified as follows:
-
-	1. Only ever use binary mode
-	2. Be more liberal about line endings in files used by `--check`
-	3. Built-in Win32 file wildcard matching (globbing)
-
-	Source code changes are available from [Bruce](mailto:bruce@gridpoint.com)
-	upon request.
-
 * GNU __AWK__ 3.1.6
 
 	<http://home.claranet.de/xyzzy/home/ltru/gawk-win.htm>
