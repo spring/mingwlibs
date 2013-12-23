@@ -70,15 +70,16 @@ set -e
 if [ -n "$EMERGE" ] && [ -x "$EMERGE" ]; then
 	$EMERGE boost --fetchonly &>/dev/null
 	source /etc/portage/make.conf
-	BOOST_FILE=$(find ${DISTDIR} -iname "boost_*.tar.*" -print 2)
+	BOOST_FILE=$(find ${DISTDIR} -iname "boost_*.tar.*")
 else
 	wget -P /tmp -N --no-verbose ${BOOST_DL}
+	BOOST_FILE="/tmp/${BOOST_FILE}"
 fi
 
 
 echo -e "\n---------------------------------------------------"
 echo "-- extracting boost's tarball"
-tar -xa -C ${BOOST_DIR} -f /tmp/${BOOST_FILE}
+tar -xa -C ${BOOST_DIR} -f ${BOOST_FILE}
 
 # bootstrap bjam
 echo -e "\n---------------------------------------------------"
