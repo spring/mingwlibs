@@ -23,6 +23,16 @@ BOOST_CONF=${BOOST_BUILD_DIR}/user-config.jam
 MINGW_GPP=/usr/bin/i686-w64-mingw32-g++
 GCC_VERSION=$(${MINGW_GPP} -dumpversion)
 
+set +e
+IS_GENTOO=$(which emerge)
+set -e
+
+if [ -n "$IS_GENTOO" ]; then
+	# jk1 buildslave's mingw64 install is broken
+	MINGW_GPP=/usr/bin/i686-mingw32-g++
+	GCC_VERSION=$(${MINGW_GPP} -dumpversion)
+fi
+
 BOOST_LIBS_ARG=""
 for LIB in $BOOST_LIBS
 do
@@ -70,7 +80,7 @@ set -e
 if [ -n "$EMERGE" ] && [ -x "$EMERGE" ]; then
 	$EMERGE boost --fetchonly &>/dev/null
 	source /etc/portage/make.conf
-	BOOST_FILE=$(find ${DISTDIR} -iname "boost_*.tar.*")
+	BOOST_FILE=$(find ${DISTDIR} -iname "boost_*.tar.*" -print -quit)
 else
 	wget -P /tmp -N --no-verbose ${BOOST_DL}
 	BOOST_FILE="/tmp/${BOOST_FILE}"
