@@ -13,11 +13,11 @@
 
 namespace boost { namespace fusion
 {
-    struct nil_;
+    struct nil;
 
     namespace result_of
     {
-        template <typename Car, typename Cdr = nil_>
+        template <typename Car, typename Cdr = nil>
         struct make_cons
         {
             typedef cons<typename detail::as_fusion_element<Car>::type, Cdr> type;

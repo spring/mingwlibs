@@ -49,11 +49,7 @@ public:
      : is_committed(false),
        origin()
     {
-#if defined(MPI_VERSION) && MPI_VERSION >= 2
-      BOOST_MPI_CHECK_RESULT(MPI_Get_address,(const_cast<void*>(orig), &origin));
-#else
       BOOST_MPI_CHECK_RESULT(MPI_Address,(const_cast<void*>(orig), &origin));
-#endif
     }
 
     void save_binary(void const *address, std::size_t count)
@@ -76,8 +72,7 @@ public:
     {
       if (!is_committed)
       {
-#if defined(MPI_VERSION) && MPI_VERSION >= 2
-       BOOST_MPI_CHECK_RESULT(MPI_Type_create_struct,
+        BOOST_MPI_CHECK_RESULT(MPI_Type_struct,
                     (
                       addresses.size(),
                       boost::serialization::detail::get_data(lengths),
@@ -85,18 +80,9 @@ public:
                       boost::serialization::detail::get_data(types),
                       &datatype_
                     ));
-#else
-        BOOST_MPI_CHECK_RESULT(MPI_Type_struct,
-                               (
-                                addresses.size(),
-                                boost::serialization::detail::get_data(lengths),
-                                boost::serialization::detail::get_data(addresses),
-                                boost::serialization::detail::get_data(types),
-                                &datatype_
-                                ));
-#endif
+
         BOOST_MPI_CHECK_RESULT(MPI_Type_commit,(&datatype_));
-        
+
         is_committed = true;
       }
 
@@ -119,11 +105,8 @@ private:
       // store address, type and length
 
       MPI_Aint a;
-#if defined(MPI_VERSION) && MPI_VERSION >= 2
-     BOOST_MPI_CHECK_RESULT(MPI_Get_address,(const_cast<void*>(p), &a));
-#else
-     BOOST_MPI_CHECK_RESULT(MPI_Address,(const_cast<void*>(p), &a));
-#endif
+      BOOST_MPI_CHECK_RESULT(MPI_Address,(const_cast<void*>(p), &a));
+
       addresses.push_back(a-origin);
       types.push_back(t);
       lengths.push_back(l);

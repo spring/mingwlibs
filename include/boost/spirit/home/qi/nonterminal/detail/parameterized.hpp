@@ -27,8 +27,8 @@ namespace boost { namespace spirit { namespace qi
     struct parameterized_nonterminal
       : parser<parameterized_nonterminal<Subject, Params> >
     {
-        parameterized_nonterminal(Subject const& subject, Params const& params_)
-          : ref(subject), params(params_)
+        parameterized_nonterminal(Subject const& subject, Params const& params)
+          : ref(subject), params(params)
         {
         }
 
@@ -41,11 +41,11 @@ namespace boost { namespace spirit { namespace qi
           , typename Skipper, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
           , Context& context, Skipper const& skipper
-          , Attribute& attr_) const
+          , Attribute& attr) const
         {
             // Forward to subject, passing the additional
             // params argument to parse.
-            return ref.get().parse(first, last, context, skipper, attr_, params);
+            return ref.get().parse(first, last, context, skipper, attr, params);
         }
 
         template <typename Context>

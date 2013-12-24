@@ -7,7 +7,6 @@
 //
 //  Copyright (c) 2009, 2011 Helge Bahmann
 //  Copyright (c) 2009 Phil Endecott
-//  Copyright (c) 2013 Tim Blechmann
 //  Linux-specific code by Phil Endecott
 
 // Different ARM processors have different atomic instructions.  In particular,
@@ -36,7 +35,7 @@
 #include <boost/memory_order.hpp>
 #include <boost/atomic/detail/config.hpp>
 
-#ifdef BOOST_HAS_PRAGMA_ONCE
+#ifdef BOOST_ATOMIC_HAS_PRAGMA_ONCE
 #pragma once
 #endif
 
@@ -133,17 +132,16 @@ atomic_signal_fence(memory_order)
     __asm__ __volatile__ ("" ::: "memory");
 }
 
-class atomic_flag
-{
+class atomic_flag {
 private:
     atomic_flag(const atomic_flag &) /* = delete */ ;
     atomic_flag & operator=(const atomic_flag &) /* = delete */ ;
     uint32_t v_;
 public:
-    BOOST_CONSTEXPR atomic_flag(void) BOOST_NOEXCEPT : v_(0) {}
+    atomic_flag(void) : v_(false) {}
 
     void
-    clear(memory_order order = memory_order_seq_cst) volatile BOOST_NOEXCEPT
+    clear(memory_order order = memory_order_seq_cst) volatile
     {
         atomics::detail::platform_fence_before_store(order);
         const_cast<volatile uint32_t &>(v_) = 0;
@@ -151,7 +149,7 @@ public:
     }
 
     bool
-    test_and_set(memory_order order = memory_order_seq_cst) volatile BOOST_NOEXCEPT
+    test_and_set(memory_order order = memory_order_seq_cst) volatile
     {
         atomics::detail::platform_fence_before(order);
         uint32_t expected = v_;
@@ -163,7 +161,6 @@ public:
         return expected;
     }
 };
-
 #define BOOST_ATOMIC_FLAG_LOCK_FREE 2
 
 }

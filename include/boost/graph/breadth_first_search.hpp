@@ -64,6 +64,7 @@ namespace boost {
     BOOST_CONCEPT_ASSERT(( IncidenceGraphConcept<IncidenceGraph> ));
     typedef graph_traits<IncidenceGraph> GTraits;
     typedef typename GTraits::vertex_descriptor Vertex;
+    typedef typename GTraits::edge_descriptor Edge;
     BOOST_CONCEPT_ASSERT(( BFSVisitorConcept<BFSVisitor, IncidenceGraph> ));
     BOOST_CONCEPT_ASSERT(( ReadWritePropertyMapConcept<ColorMap, Vertex> ));
     typedef typename property_traits<ColorMap>::value_type ColorValue;
@@ -247,7 +248,8 @@ namespace boost {
        ColorMap color,
        BFSVisitor vis,
        const bgl_named_params<P, T, R>& params,
-       boost::mpl::false_)
+       BOOST_GRAPH_ENABLE_IF_MODELS(VertexListGraph, vertex_list_graph_tag,
+                                    void)* = 0)
     {
       typedef graph_traits<VertexListGraph> Traits;
       // Buffer default
@@ -269,7 +271,8 @@ namespace boost {
        ColorMap color,
        BFSVisitor vis,
        const bgl_named_params<P, T, R>& params,
-       boost::mpl::true_);
+       BOOST_GRAPH_ENABLE_IF_MODELS(DistributedGraph, distributed_graph_tag,
+                                    void)* = 0);
 #endif // BOOST_GRAPH_USE_MPI
 
     //-------------------------------------------------------------------------
@@ -290,11 +293,7 @@ namespace boost {
           (g, s, color,
            choose_param(get_param(params, graph_visitor),
                         make_bfs_visitor(null_visitor())),
-           params,
-           boost::mpl::bool_<
-             boost::is_base_and_derived<
-               distributed_graph_tag,
-               typename graph_traits<VertexListGraph>::traversal_category>::value>());
+           params);
       }
     };
 
@@ -317,11 +316,7 @@ namespace boost {
                               g, vertex_index)),
            choose_param(get_param(params, graph_visitor),
                         make_bfs_visitor(null_vis)),
-           params,
-           boost::mpl::bool_<
-             boost::is_base_and_derived<
-               distributed_graph_tag,
-               typename graph_traits<VertexListGraph>::traversal_category>::value>());
+           params);
       }
     };
 

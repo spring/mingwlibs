@@ -1,38 +1,43 @@
 /*=============================================================================
-    Copyright (c) 2005-2013 Joel de Guzman
+    Copyright (c) 2001-2011 Joel de Guzman
+    Copyright (c) 2009 Christopher Schmidt
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
-#if !defined(BOOST_FUSION_MAP_BEGIN_IMPL_02042013_0857)
-#define BOOST_FUSION_MAP_BEGIN_IMPL_02042013_0857
 
-#include <boost/fusion/container/map/map_iterator.hpp>
+#ifndef BOOST_FUSION_CONTAINER_MAP_DETAIL_BEGIN_IMPL_HPP
+#define BOOST_FUSION_CONTAINER_MAP_DETAIL_BEGIN_IMPL_HPP
 
-namespace boost { namespace fusion
+#include <boost/fusion/iterator/basic_iterator.hpp>
+
+namespace boost { namespace fusion { namespace extension
 {
-    struct map_tag;
+    template <typename>
+    struct begin_impl;
 
-    namespace extension
+    template <>
+    struct begin_impl<map_tag>
     {
-        template<typename T>
-        struct begin_impl;
-
-        template<>
-        struct begin_impl<map_tag>
+        template <typename Seq>
+        struct apply
         {
-            template<typename Sequence>
-            struct apply
-            {
-                typedef map_iterator<Sequence, 0> type;
+            typedef
+                basic_iterator<
+                    map_iterator_tag
+                  , typename Seq::category
+                  , Seq
+                  , 0
+                >
+            type;
 
-                static type call(Sequence& seq)
-                {
-                    return type(seq);
-                }
-            };
+            static type
+            call(Seq& seq)
+            {
+                return type(seq,0);
+            }
         };
-    }
-}}
+    };
+}}}
 
 #endif

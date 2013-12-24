@@ -15,18 +15,8 @@
 
 #include <boost/iterator.hpp>
 #include <boost/throw_exception.hpp>
-#include <boost/move/move.hpp>
-#include <boost/type_traits/is_nothrow_move_constructible.hpp>
 #include <boost/detail/no_exceptions_support.hpp>
 #include <iterator>
-
-// Silence MS /W4 warnings like C4913:
-// "user defined binary operator ',' exists but no overload could convert all operands, default built-in binary operator ',' used"
-// This might happen when previously including some boost headers that overload the coma operator.
-#if defined(_MSC_VER)
-#  pragma warning(push)
-#  pragma warning(disable:4913)
-#endif
 
 namespace boost {
 
@@ -38,11 +28,9 @@ template<class ForwardIterator, class Diff, class T, class Alloc>
 void uninitialized_fill_n_with_alloc(
     ForwardIterator first, Diff n, const T& item, Alloc& alloc);
 
-template<class ValueType, class InputIterator, class ForwardIterator>
-ForwardIterator uninitialized_copy(InputIterator first, InputIterator last, ForwardIterator dest);
-
-template<class ValueType, class InputIterator, class ForwardIterator>
-ForwardIterator uninitialized_move_if_noexcept(InputIterator first, InputIterator last, ForwardIterator dest);
+template<class InputIterator, class ForwardIterator, class Alloc>
+ForwardIterator uninitialized_copy_with_alloc(
+    InputIterator first, InputIterator last, ForwardIterator dest, Alloc& alloc);
 
 /*!
     \struct const_traits
@@ -127,24 +115,20 @@ private:
     \struct assign_range
     \brief Helper functor for assigning range of items.
 */
-template <class ValueType, class Iterator>
+template <class Iterator, class Alloc>
 struct assign_range {
-    Iterator m_first;
-    Iterator m_last;
-
-    assign_range(const Iterator& first, const Iterator& last) BOOST_NOEXCEPT
-    : m_first(first), m_last(last) {}
-
+    const Iterator& m_first;
+    const Iterator& m_last;
+    Alloc& m_alloc;
+    assign_range(const Iterator& first, const Iterator& last, Alloc& alloc)
+    : m_first(first), m_last(last), m_alloc(alloc) {}
     template <class Pointer>
     void operator () (Pointer p) const {
-        boost::cb_details::uninitialized_copy<ValueType>(m_first, m_last, p);
+        uninitialized_copy_with_alloc(m_first, m_last, p, m_alloc);
     }
+private:
+    assign_range<Iterator, Alloc>& operator = (const assign_range<Iterator, Alloc>&); // do not generate
 };
-
-template <class ValueType, class Iterator>
-inline assign_range<ValueType, Iterator> make_assign_range(const Iterator& first, const Iterator& last) {
-    return assign_range<ValueType, Iterator>(first, last);
-}
 
 /*!
     \class capacity_control
@@ -153,19 +137,18 @@ inline assign_range<ValueType, Iterator> make_assign_range(const Iterator& first
 template <class Size>
 class capacity_control {
 
-    //! The capacity of the space-optimized circular buffer.
+    //! The capacity of the space optimized circular buffer.
     Size m_capacity;
 
-    //! The lowest guaranteed or minimum capacity of the adapted space-optimized circular buffer.
+    //! The lowest guaranteed capacity of the adapted circular buffer.
     Size m_min_capacity;
 
 public:
 
     //! Constructor.
     capacity_control(Size buffer_capacity, Size min_buffer_capacity = 0)
-    : m_capacity(buffer_capacity), m_min_capacity(min_buffer_capacity)
-    { // Check for capacity lower than min_capacity.
-        BOOST_CB_ASSERT(buffer_capacity >= min_buffer_capacity);
+    : m_capacity(buffer_capacity), m_min_capacity(min_buffer_capacity) {
+        BOOST_CB_ASSERT(buffer_capacity >= min_buffer_capacity); // check for capacity lower than min_capacity
     }
 
     // Default copy constructor.
@@ -442,51 +425,24 @@ inline typename Traits::difference_type* distance_type(const iterator<Buff, Trai
 #endif // #if defined(BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION) && !defined(BOOST_MSVC_STD_ITERATOR)
 
 /*!
-    \fn ForwardIterator uninitialized_copy(InputIterator first, InputIterator last, ForwardIterator dest)
-    \brief Equivalent of <code>std::uninitialized_copy</code> but with explicit specification of value type.
+    \fn ForwardIterator uninitialized_copy_with_alloc(InputIterator first, InputIterator last, ForwardIterator dest,
+            Alloc& alloc)
+    \brief Equivalent of <code>std::uninitialized_copy</code> with allocator.
 */
-template<class ValueType, class InputIterator, class ForwardIterator>
-inline ForwardIterator uninitialized_copy(InputIterator first, InputIterator last, ForwardIterator dest) {
-    typedef ValueType value_type;
-
-    // We do not use allocator.construct and allocator.destroy
-    // because C++03 requires to take parameter by const reference but
-    // Boost.move requires nonconst reference
+template<class InputIterator, class ForwardIterator, class Alloc>
+inline ForwardIterator uninitialized_copy_with_alloc(InputIterator first, InputIterator last, ForwardIterator dest,
+    Alloc& alloc) {
     ForwardIterator next = dest;
     BOOST_TRY {
         for (; first != last; ++first, ++dest)
-            ::new (dest) value_type(*first);
+            alloc.construct(dest, *first);
     } BOOST_CATCH(...) {
         for (; next != dest; ++next)
-            next->~value_type();
+            alloc.destroy(next);
         BOOST_RETHROW
     }
     BOOST_CATCH_END
     return dest;
-}
-
-template<class ValueType, class InputIterator, class ForwardIterator>
-ForwardIterator uninitialized_move_if_noexcept_impl(InputIterator first, InputIterator last, ForwardIterator dest,
-    true_type) {
-    for (; first != last; ++first, ++dest)
-        ::new (dest) ValueType(boost::move(*first));
-    return dest;
-}
-
-template<class ValueType, class InputIterator, class ForwardIterator>
-ForwardIterator uninitialized_move_if_noexcept_impl(InputIterator first, InputIterator last, ForwardIterator dest,
-    false_type) {
-    return uninitialized_copy<ValueType>(first, last, dest);
-}
-
-/*!
-    \fn ForwardIterator uninitialized_move_if_noexcept(InputIterator first, InputIterator last, ForwardIterator dest)
-    \brief Equivalent of <code>std::uninitialized_copy</code> but with explicit specification of value type and moves elements if they have noexcept move constructors.
-*/
-template<class ValueType, class InputIterator, class ForwardIterator>
-ForwardIterator uninitialized_move_if_noexcept(InputIterator first, InputIterator last, ForwardIterator dest) {
-    typedef typename boost::is_nothrow_move_constructible<ValueType>::type tag_t;
-    return uninitialized_move_if_noexcept_impl<ValueType>(first, last, dest, tag_t());
 }
 
 /*!
@@ -510,9 +466,5 @@ inline void uninitialized_fill_n_with_alloc(ForwardIterator first, Diff n, const
 } // namespace cb_details
 
 } // namespace boost
-
-#if defined(_MSC_VER)
-#  pragma warning(pop)
-#endif
 
 #endif // #if !defined(BOOST_CIRCULAR_BUFFER_DETAILS_HPP)

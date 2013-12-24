@@ -131,12 +131,7 @@ void
 gather(const communicator& comm, const T* in_values, int n, 
        std::vector<T>& out_values, int root)
 {
-  if (comm.rank() == root) {
-    out_values.resize(comm.size() * n);
-    ::boost::mpi::gather(comm, in_values, n, &out_values[0], root);
-  } 
-  else
-    ::boost::mpi::gather(comm, in_values, n, root);
+  ::boost::mpi::gather(comm, in_values, n, &out_values[0], root);
 }
 
 template<typename T>

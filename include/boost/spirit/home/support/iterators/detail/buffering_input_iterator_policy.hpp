@@ -48,7 +48,9 @@ namespace boost { namespace spirit { namespace iterator_policies
             typedef
                 typename boost::detail::iterator_traits<T>::pointer
             pointer;
-            typedef result_type& reference;
+            typedef
+                typename boost::detail::iterator_traits<T>::reference
+            reference;
             typedef result_type value_type;
 
         protected:

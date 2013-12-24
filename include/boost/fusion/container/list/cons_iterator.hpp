@@ -18,14 +18,14 @@
 
 namespace boost { namespace fusion
 {
-    struct nil_;
+    struct nil;
     struct cons_iterator_tag;
     struct forward_traversal_tag;
 
     template <typename Cons>
     struct cons_iterator_identity;
 
-    template <typename Cons = nil_>
+    template <typename Cons = nil>
     struct cons_iterator : iterator_base<cons_iterator<Cons> >
     {
         typedef cons_iterator_tag fusion_tag;
@@ -49,40 +49,40 @@ namespace boost { namespace fusion
     {
         typedef forward_traversal_tag category;
         typedef cons_iterator_tag fusion_tag;
-        typedef nil_ cons_type;
+        typedef nil cons_type;
         typedef cons_iterator_identity<
-            add_const<nil_>::type> 
+            add_const<nil>::type> 
         identity;
         nil_iterator() {}
-        explicit nil_iterator(nil_ const&) {}
+        explicit nil_iterator(nil const&) {}
     };
 
     template <>
-    struct cons_iterator<nil_> : nil_iterator 
+    struct cons_iterator<nil> : nil_iterator 
     {
         cons_iterator() {}
-        explicit cons_iterator(nil_ const&) {}
+        explicit cons_iterator(nil const&) {}
     };
 
     template <>
-    struct cons_iterator<nil_ const> : nil_iterator 
+    struct cons_iterator<nil const> : nil_iterator 
     {
         cons_iterator() {}
-        explicit cons_iterator(nil_ const&) {}
+        explicit cons_iterator(nil const&) {}
     };
 
     template <>
     struct cons_iterator<list<> > : nil_iterator 
     {
         cons_iterator() {}
-        explicit cons_iterator(nil_ const&) {}
+        explicit cons_iterator(nil const&) {}
     };
 
     template <>
     struct cons_iterator<list<> const> : nil_iterator 
     {
         cons_iterator() {}
-        explicit cons_iterator(nil_ const&) {}
+        explicit cons_iterator(nil const&) {}
     };
 }}
 

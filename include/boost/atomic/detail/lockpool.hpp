@@ -8,12 +8,11 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 
 #include <boost/atomic/detail/config.hpp>
-#include <boost/atomic/detail/link.hpp>
 #ifndef BOOST_ATOMIC_FLAG_LOCK_FREE
-#include <boost/smart_ptr/detail/lightweight_mutex.hpp>
+#include <boost/thread/mutex.hpp>
 #endif
 
-#ifdef BOOST_HAS_PRAGMA_ONCE
+#ifdef BOOST_ATOMIC_HAS_PRAGMA_ONCE
 #pragma once
 #endif
 
@@ -26,19 +25,25 @@ namespace detail {
 class lockpool
 {
 public:
-    typedef boost::detail::lightweight_mutex lock_type;
-    class scoped_lock :
-        public lock_type::scoped_lock
+    typedef mutex lock_type;
+    class scoped_lock
     {
-        typedef lock_type::scoped_lock base_type;
+    private:
+        lock_type& mtx_;
+
+        scoped_lock(scoped_lock const&) /* = delete */;
+        scoped_lock& operator=(scoped_lock const&) /* = delete */;
 
     public:
-        explicit scoped_lock(const volatile void * addr) : base_type(get_lock_for(addr))
+        explicit
+        scoped_lock(const volatile void * addr) : mtx_(get_lock_for(addr))
         {
+            mtx_.lock();
         }
-
-        BOOST_DELETED_FUNCTION(scoped_lock(scoped_lock const&))
-        BOOST_DELETED_FUNCTION(scoped_lock& operator=(scoped_lock const&))
+        ~scoped_lock()
+        {
+            mtx_.unlock();
+        }
     };
 
 private:
@@ -57,6 +62,9 @@ public:
     private:
         atomic_flag& flag_;
 
+        scoped_lock(const scoped_lock &) /* = delete */;
+        scoped_lock& operator=(const scoped_lock &) /* = delete */;
+
     public:
         explicit
         scoped_lock(const volatile void * addr) : flag_(get_lock_for(addr))
@@ -73,9 +81,6 @@ public:
         {
             flag_.clear(memory_order_release);
         }
-
-        BOOST_DELETED_FUNCTION(scoped_lock(const scoped_lock &))
-        BOOST_DELETED_FUNCTION(scoped_lock& operator=(const scoped_lock &))
     };
 
 private:

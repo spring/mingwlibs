@@ -18,7 +18,7 @@
 # pragma once
 #endif
 
-#include <boost/assert.hpp>
+
 #include <pthread.h>
 
 namespace boost
@@ -44,20 +44,20 @@ public:
 // HPUX 10.20 / DCE has a nonstandard pthread_mutex_init
 
 #if defined(__hpux) && defined(_DECTHREADS_)
-        BOOST_VERIFY(pthread_mutex_init(&m_, pthread_mutexattr_default) == 0);
+        pthread_mutex_init(&m_, pthread_mutexattr_default);
 #else
-        BOOST_VERIFY(pthread_mutex_init(&m_, 0) == 0);
+        pthread_mutex_init(&m_, 0);
 #endif
     }
 
     ~mutex()
     {
-        BOOST_VERIFY(pthread_mutex_destroy(&m_) == 0);
+        pthread_mutex_destroy(&m_);
     }
 
     void lock()
     {
-        BOOST_VERIFY(pthread_mutex_lock(&m_) == 0);
+        pthread_mutex_lock(&m_);
     }
 
     bool try_lock()
@@ -67,7 +67,7 @@ public:
 
     void unlock()
     {
-        BOOST_VERIFY(pthread_mutex_unlock(&m_) == 0);
+        pthread_mutex_unlock(&m_);
     }
 };
 

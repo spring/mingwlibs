@@ -13,7 +13,7 @@
 
 namespace boost { namespace fusion
 {
-    struct nil_;
+    struct nil;
 
     struct cons_tag;
 
@@ -35,7 +35,7 @@ namespace boost { namespace fusion
             struct apply 
             {
                 typedef cons_iterator<
-                    typename mpl::if_<is_const<Sequence>, nil_ const, nil_>::type>
+                    typename mpl::if_<is_const<Sequence>, nil const, nil>::type>
                 type;
     
                 static type

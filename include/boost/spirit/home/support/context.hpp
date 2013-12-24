@@ -116,8 +116,8 @@ namespace boost { namespace spirit
             )
           , locals() {}
 
-        context(Attributes const& attributes_)
-          : attributes(attributes_), locals() {}
+        context(Attributes const& attributes)
+          : attributes(attributes), locals() {}
 
         Attributes attributes;  // The attributes
         Locals locals;          // Local variables

@@ -707,11 +707,10 @@ namespace boost { namespace spirit { namespace karma
     {
         template <typename OutputIterator>
         static bool
-        call_noforce(OutputIterator& sink, bool is_zero, bool is_negative,
-            bool sign_if_zero)
+        call_noforce(OutputIterator& sink, bool /*is_zero*/, bool is_negative)
         {
             // generate a sign for negative numbers only
-            if (is_negative || (is_zero && sign_if_zero)) {
+            if (is_negative) {
                 *sink = '-';
                 ++sink;
             }
@@ -720,11 +719,10 @@ namespace boost { namespace spirit { namespace karma
 
         template <typename OutputIterator>
         static bool
-        call_force(OutputIterator& sink, bool is_zero, bool is_negative,
-            bool sign_if_zero)
+        call_force(OutputIterator& sink, bool is_zero, bool is_negative)
         {
             // generate a sign for all numbers except zero
-            if (!is_zero || sign_if_zero)
+            if (!is_zero)
                 *sink = is_negative ? '-' : '+';
             else
                 *sink = ' ';
@@ -736,11 +734,11 @@ namespace boost { namespace spirit { namespace karma
         template <typename OutputIterator>
         static bool
         call(OutputIterator& sink, bool is_zero, bool is_negative
-          , bool forcesign, bool sign_if_zero = false)
+          , bool forcesign)
         {
             return forcesign ?
-                call_force(sink, is_zero, is_negative, sign_if_zero) :
-                call_noforce(sink, is_zero, is_negative, sign_if_zero);
+                call_force(sink, is_zero, is_negative) :
+                call_noforce(sink, is_zero, is_negative);
         }
     };
 

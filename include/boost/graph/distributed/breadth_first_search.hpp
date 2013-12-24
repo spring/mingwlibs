@@ -151,7 +151,8 @@ namespace boost {
        ColorMap color,
        BFSVisitor vis,
        const bgl_named_params<P, T, R>& params,
-       boost::mpl::true_)
+       BOOST_GRAPH_ENABLE_IF_MODELS(DistributedGraph, distributed_graph_tag,
+                                    void)*)
         {
             parallel_bfs_helper
         (g, s, color, vis, get_param(params, buffer_param_t()),

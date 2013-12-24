@@ -10,12 +10,9 @@
 
 namespace boost { namespace fusion
 {
-    struct nil_;
-    #ifndef nil
-    typedef nil_ nil;
-    #endif
+    struct nil;
 
-    template <typename Car, typename Cdr = nil_>
+    template <typename Car, typename Cdr = nil>
     struct cons;
 }}
 

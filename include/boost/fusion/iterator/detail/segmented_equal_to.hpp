@@ -13,7 +13,7 @@
 
 namespace boost { namespace fusion
 {
-    struct nil_;
+    struct nil;
 
     namespace detail
     {
@@ -32,7 +32,7 @@ namespace boost { namespace fusion
         {};
 
         template <>
-        struct segmented_equal_to<fusion::nil_, fusion::nil_>
+        struct segmented_equal_to<fusion::nil, fusion::nil>
           : mpl::true_
         {};
     }

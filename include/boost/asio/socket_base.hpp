@@ -2,7 +2,7 @@
 // socket_base.hpp
 // ~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2013 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2012 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -16,6 +16,7 @@
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 #include <boost/asio/detail/config.hpp>
+#include <boost/detail/workaround.hpp>
 #include <boost/asio/detail/io_control.hpp>
 #include <boost/asio/detail/socket_option.hpp>
 #include <boost/asio/detail/socket_types.hpp>
@@ -44,9 +45,9 @@ public:
     /// Shutdown both send and receive on the socket.
     shutdown_both = implementation_defined
 #else
-    shutdown_receive = BOOST_ASIO_OS_DEF(SHUT_RD),
-    shutdown_send = BOOST_ASIO_OS_DEF(SHUT_WR),
-    shutdown_both = BOOST_ASIO_OS_DEF(SHUT_RDWR)
+    shutdown_receive = boost::asio::detail::shutdown_receive,
+    shutdown_send = boost::asio::detail::shutdown_send,
+    shutdown_both = boost::asio::detail::shutdown_both
 #endif
   };
 
@@ -66,14 +67,14 @@ public:
   /// Specifies that the data marks the end of a record.
   static const int message_end_of_record = implementation_defined;
 #else
-  BOOST_ASIO_STATIC_CONSTANT(int,
-      message_peek = BOOST_ASIO_OS_DEF(MSG_PEEK));
-  BOOST_ASIO_STATIC_CONSTANT(int,
-      message_out_of_band = BOOST_ASIO_OS_DEF(MSG_OOB));
-  BOOST_ASIO_STATIC_CONSTANT(int,
-      message_do_not_route = BOOST_ASIO_OS_DEF(MSG_DONTROUTE));
-  BOOST_ASIO_STATIC_CONSTANT(int,
-      message_end_of_record = BOOST_ASIO_OS_DEF(MSG_EOR));
+  BOOST_STATIC_CONSTANT(int,
+      message_peek = boost::asio::detail::message_peek);
+  BOOST_STATIC_CONSTANT(int,
+      message_out_of_band = boost::asio::detail::message_out_of_band);
+  BOOST_STATIC_CONSTANT(int,
+      message_do_not_route = boost::asio::detail::message_do_not_route);
+  BOOST_STATIC_CONSTANT(int,
+      message_end_of_record = boost::asio::detail::message_end_of_record);
 #endif
 
   /// Socket option to permit sending of broadcast messages.
@@ -106,8 +107,7 @@ public:
   typedef implementation_defined broadcast;
 #else
   typedef boost::asio::detail::socket_option::boolean<
-    BOOST_ASIO_OS_DEF(SOL_SOCKET), BOOST_ASIO_OS_DEF(SO_BROADCAST)>
-      broadcast;
+    SOL_SOCKET, SO_BROADCAST> broadcast;
 #endif
 
   /// Socket option to enable socket-level debugging.
@@ -140,7 +140,7 @@ public:
   typedef implementation_defined debug;
 #else
   typedef boost::asio::detail::socket_option::boolean<
-    BOOST_ASIO_OS_DEF(SOL_SOCKET), BOOST_ASIO_OS_DEF(SO_DEBUG)> debug;
+    SOL_SOCKET, SO_DEBUG> debug;
 #endif
 
   /// Socket option to prevent routing, use local interfaces only.
@@ -173,8 +173,7 @@ public:
   typedef implementation_defined do_not_route;
 #else
   typedef boost::asio::detail::socket_option::boolean<
-    BOOST_ASIO_OS_DEF(SOL_SOCKET), BOOST_ASIO_OS_DEF(SO_DONTROUTE)>
-      do_not_route;
+    SOL_SOCKET, SO_DONTROUTE> do_not_route;
 #endif
 
   /// Socket option to send keep-alives.
@@ -207,7 +206,7 @@ public:
   typedef implementation_defined keep_alive;
 #else
   typedef boost::asio::detail::socket_option::boolean<
-    BOOST_ASIO_OS_DEF(SOL_SOCKET), BOOST_ASIO_OS_DEF(SO_KEEPALIVE)> keep_alive;
+    SOL_SOCKET, SO_KEEPALIVE> keep_alive;
 #endif
 
   /// Socket option for the send buffer size of a socket.
@@ -240,8 +239,7 @@ public:
   typedef implementation_defined send_buffer_size;
 #else
   typedef boost::asio::detail::socket_option::integer<
-    BOOST_ASIO_OS_DEF(SOL_SOCKET), BOOST_ASIO_OS_DEF(SO_SNDBUF)>
-      send_buffer_size;
+    SOL_SOCKET, SO_SNDBUF> send_buffer_size;
 #endif
 
   /// Socket option for the send low watermark.
@@ -274,8 +272,7 @@ public:
   typedef implementation_defined send_low_watermark;
 #else
   typedef boost::asio::detail::socket_option::integer<
-    BOOST_ASIO_OS_DEF(SOL_SOCKET), BOOST_ASIO_OS_DEF(SO_SNDLOWAT)>
-      send_low_watermark;
+    SOL_SOCKET, SO_SNDLOWAT> send_low_watermark;
 #endif
 
   /// Socket option for the receive buffer size of a socket.
@@ -308,8 +305,7 @@ public:
   typedef implementation_defined receive_buffer_size;
 #else
   typedef boost::asio::detail::socket_option::integer<
-    BOOST_ASIO_OS_DEF(SOL_SOCKET), BOOST_ASIO_OS_DEF(SO_RCVBUF)>
-      receive_buffer_size;
+    SOL_SOCKET, SO_RCVBUF> receive_buffer_size;
 #endif
 
   /// Socket option for the receive low watermark.
@@ -342,8 +338,7 @@ public:
   typedef implementation_defined receive_low_watermark;
 #else
   typedef boost::asio::detail::socket_option::integer<
-    BOOST_ASIO_OS_DEF(SOL_SOCKET), BOOST_ASIO_OS_DEF(SO_RCVLOWAT)>
-      receive_low_watermark;
+    SOL_SOCKET, SO_RCVLOWAT> receive_low_watermark;
 #endif
 
   /// Socket option to allow the socket to be bound to an address that is
@@ -377,8 +372,7 @@ public:
   typedef implementation_defined reuse_address;
 #else
   typedef boost::asio::detail::socket_option::boolean<
-    BOOST_ASIO_OS_DEF(SOL_SOCKET), BOOST_ASIO_OS_DEF(SO_REUSEADDR)>
-      reuse_address;
+    SOL_SOCKET, SO_REUSEADDR> reuse_address;
 #endif
 
   /// Socket option to specify whether the socket lingers on close if unsent
@@ -413,8 +407,7 @@ public:
   typedef implementation_defined linger;
 #else
   typedef boost::asio::detail::socket_option::linger<
-    BOOST_ASIO_OS_DEF(SOL_SOCKET), BOOST_ASIO_OS_DEF(SO_LINGER)>
-      linger;
+    SOL_SOCKET, SO_LINGER> linger;
 #endif
 
   /// Socket option to report aborted connections on accept.
@@ -503,8 +496,7 @@ public:
 #if defined(GENERATING_DOCUMENTATION)
   static const int max_connections = implementation_defined;
 #else
-  BOOST_ASIO_STATIC_CONSTANT(int, max_connections
-      = BOOST_ASIO_OS_DEF(SOMAXCONN));
+  BOOST_STATIC_CONSTANT(int, max_connections = SOMAXCONN);
 #endif
 
 protected:
@@ -512,6 +504,12 @@ protected:
   ~socket_base()
   {
   }
+
+#if BOOST_WORKAROUND(__BORLANDC__, BOOST_TESTED_AT(0x564))
+private:
+  // Workaround to enable the empty base optimisation with Borland C++.
+  char dummy_;
+#endif
 };
 
 } // namespace asio

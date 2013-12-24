@@ -3,14 +3,12 @@
 // See http://www.boost.org for updates, documentation, and revision history.
 //-----------------------------------------------------------------------------
 //
-// Copyright (c) 2002-2003 Eric Friedman, Itay Maman
-// Copyright (c) 2012-2013 Antony Polukhin
+// Copyright (c) 2002-2003
+// Eric Friedman, Itay Maman
 //
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
-
-// Thanks to Adam Romanek for providing patches for exception-disabled env.
 
 #ifndef BOOST_VARIANT_VARIANT_HPP
 #define BOOST_VARIANT_VARIANT_HPP
@@ -37,9 +35,9 @@
 #include "boost/variant/detail/hash_variant.hpp"
 
 #include "boost/variant/detail/generic_result_type.hpp"
+#include "boost/variant/detail/has_nothrow_move.hpp"
 #include "boost/variant/detail/move.hpp"
 
-#include "boost/detail/no_exceptions_support.hpp"
 #include "boost/detail/reference_content.hpp"
 #include "boost/aligned_storage.hpp"
 #include "boost/blank.hpp"
@@ -51,7 +49,6 @@
 #include "boost/type_traits/add_const.hpp"
 #include "boost/type_traits/has_nothrow_constructor.hpp"
 #include "boost/type_traits/has_nothrow_copy.hpp"
-#include "boost/type_traits/is_nothrow_move_constructible.hpp"
 #include "boost/type_traits/is_const.hpp"
 #include "boost/type_traits/is_same.hpp"
 #include "boost/type_traits/is_rvalue_reference.hpp"
@@ -229,25 +226,6 @@ struct find_fallback_type<int>
 
 #endif // BOOST_MPL_CFG_MSVC_60_ETI_BUG workaround
 
-#ifndef BOOST_NO_CXX11_NOEXCEPT
-///////////////////////////////////////////////////////////////////////////////
-// (detail) metafunction is_variant_move_noexcept
-//
-// Returns true_type if all the types are nothrow move constructible.
-//
-template <class Types>
-struct is_variant_move_noexcept {
-    typedef typename boost::mpl::find_if<
-        Types, mpl::not_<boost::is_nothrow_move_constructible<boost::mpl::_1> >
-    >::type iterator_t;
-
-    typedef typename boost::mpl::end<Types>::type end_t;
-    typedef typename boost::is_same<
-        iterator_t, end_t
-    >::type type;
-};
-#endif // BOOST_NO_CXX11_NOEXCEPT
-
 ///////////////////////////////////////////////////////////////////////////////
 // (detail) metafunction make_storage
 //
@@ -367,10 +345,6 @@ public: // visitor interface
         return operand;
     }
 
-#if defined BOOST_MSVC 
-# pragma warning( push ) 
-# pragma warning( disable : 4702 ) // unreachable code 
-#endif 
     template <typename U>
     T& operator()(U&) const
     {
@@ -378,9 +352,6 @@ public: // visitor interface
         BOOST_ASSERT(false);
         return ::boost::detail::variant::forced_return< T& >();
     }
-#if defined BOOST_MSVC 
-# pragma warning( pop ) 
-#endif
 
 #else // MSVC6
 
@@ -788,7 +759,7 @@ private: // helpers, for visitor interface (below)
     template <typename LhsT>
     void backup_assign_impl(
           LhsT& lhs_content
-        , mpl::true_ // is_nothrow_move_constructible
+        , mpl::true_// has_nothrow_move
         )
     {
         // Move lhs content to backup...
@@ -799,12 +770,12 @@ private: // helpers, for visitor interface (below)
         // ...destroy lhs content...
         lhs_content.~LhsT(); // nothrow
 
-        BOOST_TRY
+        try
         {
             // ...and attempt to copy rhs content into lhs storage:
             copy_rhs_content_(lhs_.storage_.address(), rhs_content_);
         }
-        BOOST_CATCH (...)
+        catch (...)
         {
             // In case of failure, restore backup content to lhs storage...
             new(lhs_.storage_.address())
@@ -813,9 +784,8 @@ private: // helpers, for visitor interface (below)
                     ); // nothrow
 
             // ...and rethrow:
-            BOOST_RETHROW;
+            throw;
         }
-        BOOST_CATCH_END
 
         // In case of success, indicate new content type:
         lhs_.indicate_which(rhs_which_); // nothrow
@@ -824,7 +794,7 @@ private: // helpers, for visitor interface (below)
     template <typename LhsT>
     void backup_assign_impl(
           LhsT& lhs_content
-        , mpl::false_ // is_nothrow_move_constructible
+        , mpl::false_// has_nothrow_move
         )
     {
         // Backup lhs content...
@@ -833,12 +803,12 @@ private: // helpers, for visitor interface (below)
         // ...destroy lhs content...
         lhs_content.~LhsT(); // nothrow
 
-        BOOST_TRY
+        try
         {
             // ...and attempt to copy rhs content into lhs storage:
             copy_rhs_content_(lhs_.storage_.address(), rhs_content_);
         }
-        BOOST_CATCH (...)
+        catch (...)
         {
             // In case of failure, copy backup pointer to lhs storage...
             new(lhs_.storage_.address())
@@ -848,9 +818,8 @@ private: // helpers, for visitor interface (below)
             lhs_.indicate_backup_which( lhs_.which() ); // nothrow
 
             // ...and rethrow:
-            BOOST_RETHROW;
+            throw;
         }
-        BOOST_CATCH_END
 
         // In case of success, indicate new content type...
         lhs_.indicate_which(rhs_which_); // nothrow
@@ -865,7 +834,7 @@ public: // visitor interface
         BOOST_VARIANT_AUX_RETURN_VOID_TYPE
     internal_visit(LhsT& lhs_content, int)
     {
-        typedef typename is_nothrow_move_constructible<LhsT>::type
+        typedef typename has_nothrow_move_constructor<LhsT>::type
             nothrow_move;
 
         backup_assign_impl( lhs_content, nothrow_move() );
@@ -1320,12 +1289,6 @@ private: // helpers, for representation (below)
           internal_types, never_uses_backup_flag
         >::type storage_t;
 
-#ifndef BOOST_NO_CXX11_NOEXCEPT
-    typedef typename detail::variant::is_variant_move_noexcept<
-        internal_types
-    > variant_move_noexcept;
-#endif
-
 private: // helpers, for representation (below)
 
     // which_ on:
@@ -1412,7 +1375,7 @@ private: // helpers, for structors (below)
 
 public: // structors
 
-    ~variant() BOOST_NOEXCEPT
+    ~variant()
     {
         destroy_content();
     }
@@ -1783,8 +1746,7 @@ public: // structors, cont.
     
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     template <class T>
-    variant(T&& operand, typename boost::enable_if<boost::is_rvalue_reference<T&&> >::type* = 0, 
-        typename boost::disable_if<boost::is_const<T> >::type* = 0)
+    variant(T&& operand, typename boost::enable_if<boost::is_rvalue_reference<T&&> >::type* = 0)
     {
         convert_construct( detail::variant::move(operand), 1L);
     }
@@ -1804,7 +1766,7 @@ public: // structors, cont.
     }
     
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-    variant(variant&& operand) BOOST_NOEXCEPT_IF(variant_move_noexcept::type::value)
+    variant(variant&& operand)
     {
         // Move the value of operand into *this...
         detail::variant::move_into visitor( storage_.address() );
@@ -1849,9 +1811,9 @@ private: // helpers, for modifiers (below)
         template <typename RhsT, typename B1, typename B2>
         void assign_impl(
               const RhsT& rhs_content
-            , mpl::true_ // has_nothrow_copy
-            , B1 // is_nothrow_move_constructible
-            , B2 // has_fallback_type
+            , mpl::true_// has_nothrow_copy
+            , B1// has_nothrow_move_constructor
+            , B2// has_fallback_type
             )
         {
             // Destroy lhs's content...
@@ -1868,9 +1830,9 @@ private: // helpers, for modifiers (below)
         template <typename RhsT, typename B>
         void assign_impl(
               const RhsT& rhs_content
-            , mpl::false_ // has_nothrow_copy
-            , mpl::true_ // is_nothrow_move_constructible
-            , B // has_fallback_type
+            , mpl::false_// has_nothrow_copy
+            , mpl::true_// has_nothrow_move_constructor
+            , B// has_fallback_type
             )
         {
             // Attempt to make a temporary copy (so as to move it below)...
@@ -1890,21 +1852,21 @@ private: // helpers, for modifiers (below)
         template <typename RhsT>
         void assign_impl(
               const RhsT& rhs_content
-            , mpl::false_ // has_nothrow_copy
-            , mpl::false_ // is_nothrow_move_constructible
-            , mpl::true_ // has_fallback_type
+            , mpl::false_// has_nothrow_copy
+            , mpl::false_// has_nothrow_move_constructor
+            , mpl::true_// has_fallback_type
             )
         {
             // Destroy lhs's content...
             lhs_.destroy_content(); // nothrow
 
-            BOOST_TRY
+            try
             {
                 // ...and attempt to copy rhs's content into lhs's storage:
                 new(lhs_.storage_.address())
                     RhsT( rhs_content );
             }
-            BOOST_CATCH (...)
+            catch (...)
             {
                 // In case of failure, default-construct fallback type in lhs's storage...
                 new (lhs_.storage_.address())
@@ -1916,9 +1878,8 @@ private: // helpers, for modifiers (below)
                     ); // nothrow
 
                 // ...and rethrow:
-                BOOST_RETHROW;
+                throw;
             }
-            BOOST_CATCH_END
 
             // In the event of success, indicate new content type:
             lhs_.indicate_which(rhs_which_); // nothrow
@@ -1927,9 +1888,9 @@ private: // helpers, for modifiers (below)
         template <typename RhsT>
         void assign_impl(
               const RhsT& rhs_content
-            , mpl::false_ // has_nothrow_copy
-            , mpl::false_ // is_nothrow_move_constructible
-            , mpl::false_ // has_fallback_type
+            , mpl::false_// has_nothrow_copy
+            , mpl::false_// has_nothrow_move_constructor
+            , mpl::false_// has_fallback_type
             )
         {
             detail::variant::backup_assigner<wknd_self_t>
@@ -1947,7 +1908,7 @@ private: // helpers, for modifiers (below)
                 nothrow_copy;
             typedef typename mpl::or_< // reduces compile-time
                   nothrow_copy
-                , is_nothrow_move_constructible<RhsT>
+                , detail::variant::has_nothrow_move_constructor<RhsT>
                 >::type nothrow_move_constructor;
 
             assign_impl(
@@ -1994,12 +1955,12 @@ private: // helpers, for modifiers (below)
 
     private: // helpers, for internal visitor interface (below)
 
-        template <typename RhsT, typename B2>
+        template <typename RhsT, typename B1, typename B2>
         void assign_impl(
               RhsT& rhs_content
-            , mpl::true_ // has_nothrow_copy
-            , mpl::false_ // is_nothrow_move_constructible
-            , B2 // has_fallback_type
+            , mpl::true_// has_nothrow_copy
+            , mpl::false_// has_nothrow_move_constructor
+            , B2// has_fallback_type
             )
         {
             // Destroy lhs's content...
@@ -2016,9 +1977,9 @@ private: // helpers, for modifiers (below)
         template <typename RhsT, typename B>
         void assign_impl(
               RhsT& rhs_content
-            , mpl::true_ // has_nothrow_copy
-            , mpl::true_ // is_nothrow_move_constructible
-            , B // has_fallback_type
+            , mpl::true_// has_nothrow_copy
+            , mpl::true_// has_nothrow_move_constructor
+            , B// has_fallback_type
             )
         {
             // ...destroy lhs's content...
@@ -2035,21 +1996,21 @@ private: // helpers, for modifiers (below)
         template <typename RhsT>
         void assign_impl(
               RhsT& rhs_content
-            , mpl::false_ // has_nothrow_copy
-            , mpl::false_ // is_nothrow_move_constructible
-            , mpl::true_ // has_fallback_type
+            , mpl::false_// has_nothrow_copy
+            , mpl::false_// has_nothrow_move_constructor
+            , mpl::true_// has_fallback_type
             )
         {
             // Destroy lhs's content...
             lhs_.destroy_content(); // nothrow
 
-            BOOST_TRY
+            try
             {
                 // ...and attempt to copy rhs's content into lhs's storage:
                 new(lhs_.storage_.address())
                     RhsT( detail::variant::move(rhs_content) );
             }
-            BOOST_CATCH (...)
+            catch (...)
             {
                 // In case of failure, default-construct fallback type in lhs's storage...
                 new (lhs_.storage_.address())
@@ -2061,9 +2022,8 @@ private: // helpers, for modifiers (below)
                     ); // nothrow
 
                 // ...and rethrow:
-                BOOST_RETHROW;
+                throw;
             }
-            BOOST_CATCH_END
 
             // In the event of success, indicate new content type:
             lhs_.indicate_which(rhs_which_); // nothrow
@@ -2072,9 +2032,9 @@ private: // helpers, for modifiers (below)
         template <typename RhsT>
         void assign_impl(
               const RhsT& rhs_content
-            , mpl::false_ // has_nothrow_copy
-            , mpl::false_ // is_nothrow_move_constructible
-            , mpl::false_ // has_fallback_type
+            , mpl::false_// has_nothrow_copy
+            , mpl::false_// has_nothrow_move_constructor
+            , mpl::false_// has_fallback_type
             )
         {
             detail::variant::backup_assigner<wknd_self_t>
@@ -2088,7 +2048,7 @@ private: // helpers, for modifiers (below)
             BOOST_VARIANT_AUX_RETURN_VOID_TYPE
         internal_visit(RhsT& rhs_content, int)
         {
-            typedef typename is_nothrow_move_constructible<RhsT>::type
+            typedef typename detail::variant::has_nothrow_move_constructor<RhsT>::type
                 nothrow_move_constructor;
             typedef typename mpl::or_< // reduces compile-time
                   nothrow_move_constructor
@@ -2195,8 +2155,7 @@ public: // modifiers
 
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     template <class T>
-    typename boost::enable_if_c<boost::is_rvalue_reference<T&&>::value && !boost::is_const<T>::value, variant& >::type 
-        operator=(T&& rhs)
+    typename boost::enable_if<boost::is_rvalue_reference<T&&>, variant& >::type operator=(T&& rhs)
     {
         move_assign( detail::variant::move(rhs) );
         return *this;
@@ -2218,7 +2177,7 @@ public: // modifiers
     }
 
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-    variant& operator=(variant&& rhs) // BOOST_NOEXCEPT_IF(variant_move_noexcept::type::value && all move assign operators are noexcept)
+    variant& operator=(variant&& rhs)
     {
         variant_assign( detail::variant::move(rhs) );
         return *this;

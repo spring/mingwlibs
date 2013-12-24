@@ -13,7 +13,7 @@
 
 namespace boost { namespace fusion
 {
-    struct nil_;
+    struct nil;
 
     struct cons_tag;
 

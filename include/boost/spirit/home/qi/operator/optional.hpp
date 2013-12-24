@@ -55,14 +55,14 @@ namespace boost { namespace spirit { namespace qi
             type;
         };
 
-        optional(Subject const& subject_)
-          : subject(subject_) {}
+        optional(Subject const& subject)
+          : subject(subject) {}
 
         template <typename Iterator, typename Context
           , typename Skipper, typename Attribute>
         bool parse_impl(Iterator& first, Iterator const& last
           , Context& context, Skipper const& skipper
-          , Attribute& attr_, mpl::false_) const
+          , Attribute& attr, mpl::false_) const
         {
             // create a local value if Attribute is not unused_type
             typename spirit::result_of::optional_value<Attribute>::type val = 
@@ -71,7 +71,7 @@ namespace boost { namespace spirit { namespace qi
             if (subject.parse(first, last, context, skipper, val))
             {
                 // assign the parsed value into our attribute
-                spirit::traits::assign_to(val, attr_);
+                spirit::traits::assign_to(val, attr);
             }
             return true;
         }
@@ -80,9 +80,9 @@ namespace boost { namespace spirit { namespace qi
           , typename Skipper, typename Attribute>
         bool parse_impl(Iterator& first, Iterator const& last
           , Context& context, Skipper const& skipper
-          , Attribute& attr_, mpl::true_) const
+          , Attribute& attr, mpl::true_) const
         {
-            subject.parse(first, last, context, skipper, attr_);
+            subject.parse(first, last, context, skipper, attr);
             return true;
         }
 
@@ -90,12 +90,12 @@ namespace boost { namespace spirit { namespace qi
           , typename Skipper, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
           , Context& context, Skipper const& skipper
-          , Attribute& attr_) const
+          , Attribute& attr) const
         {
             typedef typename spirit::result_of::optional_value<Attribute>::type 
                 attribute_type;
 
-            return parse_impl(first, last, context, skipper, attr_
+            return parse_impl(first, last, context, skipper, attr
               , traits::is_container<attribute_type>());
         }
 

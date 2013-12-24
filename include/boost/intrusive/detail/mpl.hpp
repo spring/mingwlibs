@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 //
-// (C) Copyright Ion Gaztanaga  2006-2013
+// (C) Copyright Ion Gaztanaga  2006-2012
 //
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
@@ -283,13 +283,20 @@ struct alignment_of
 template <typename T, typename U>
 struct is_same
 {
-   static const bool value = false;
-};
+   typedef char yes_type;
+   struct no_type
+   {
+      char padding[8];
+   };
 
-template <typename T>
-struct is_same<T, T>
-{
-   static const bool value = true;
+   template <typename V>
+   static yes_type is_same_tester(V*, V*);
+   static no_type is_same_tester(...);
+
+   static T *t;
+   static U *u;
+
+   static const bool value = sizeof(yes_type) == sizeof(is_same_tester(t,u));
 };
 
 template<typename T>

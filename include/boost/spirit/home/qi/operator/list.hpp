@@ -55,8 +55,8 @@ namespace boost { namespace spirit { namespace qi
             type;
         };
 
-        list(Left const& left_, Right const& right_)
-          : left(left_), right(right_) {}
+        list(Left const& left, Right const& right)
+          : left(left), right(right) {}
 
         template <typename F>
         bool parse_container(F f) const
@@ -80,17 +80,17 @@ namespace boost { namespace spirit { namespace qi
           , typename Skipper, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
           , Context& context, Skipper const& skipper
-          , Attribute& attr_) const
+          , Attribute& attr) const
         {
             typedef detail::fail_function<Iterator, Context, Skipper>
                 fail_function;
 
             // ensure the attribute is actually a container type
-            traits::make_container(attr_);
+            traits::make_container(attr);
 
             Iterator iter = first;
             fail_function f(iter, last, context, skipper);
-            if (!parse_container(detail::make_pass_container(f, attr_)))
+            if (!parse_container(detail::make_pass_container(f, attr)))
                 return false;
 
             first = f.first;

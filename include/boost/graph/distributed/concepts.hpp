@@ -29,6 +29,10 @@
 
 namespace boost { 
 
+class distributed_graph_tag { };
+class distributed_vertex_list_graph_tag { };
+class distributed_edge_list_graph_tag { };
+
 #if BOOST_VERSION >= 103500
   namespace concepts {
 #endif

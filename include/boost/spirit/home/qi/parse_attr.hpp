@@ -62,8 +62,8 @@ namespace boost { namespace spirit { namespace qi
             BOOST_PP_ENUM(N, BOOST_SPIRIT_QI_ATTRIBUTE_REFERENCE, A)
         > vector_type;
 
-        vector_type lattr (BOOST_PP_ENUM_PARAMS(N, attr));
-        return compile<qi::domain>(expr).parse(first, last, unused, unused, lattr);
+        vector_type attr (BOOST_PP_ENUM_PARAMS(N, attr));
+        return compile<qi::domain>(expr).parse(first, last, unused, unused, attr);
     }
 
     template <typename Iterator, typename Expr
@@ -113,9 +113,9 @@ namespace boost { namespace spirit { namespace qi
             BOOST_PP_ENUM(N, BOOST_SPIRIT_QI_ATTRIBUTE_REFERENCE, A)
         > vector_type;
 
-        vector_type lattr (BOOST_PP_ENUM_PARAMS(N, attr));
+        vector_type attr (BOOST_PP_ENUM_PARAMS(N, attr));
         if (!compile<qi::domain>(expr).parse(
-                first, last, unused, skipper_, lattr))
+                first, last, unused, skipper_, attr))
             return false;
 
         if (post_skip == skip_flag::postskip)

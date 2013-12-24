@@ -13,7 +13,7 @@
 #ifndef BOOST_CONTAINER_CONTAINER_DETAIL_MPL_HPP
 #define BOOST_CONTAINER_CONTAINER_DETAIL_MPL_HPP
 
-#if defined(_MSC_VER)
+#if (defined _MSC_VER) && (_MSC_VER >= 1200)
 #  pragma once
 #endif
 

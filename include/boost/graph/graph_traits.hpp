@@ -166,13 +166,7 @@ namespace boost {
     struct edge_list_graph_tag { };
     struct adjacency_matrix_tag { };
 
-    // Parallel traversal_category tags
-    struct distributed_graph_tag { };
-    struct distributed_vertex_list_graph_tag { };
-    struct distributed_edge_list_graph_tag { };
-#define BOOST_GRAPH_SEQUENTIAL_TRAITS_DEFINES_DISTRIBUTED_TAGS // Disable these from external versions of PBGL
-
-    /** @name Traversal Category Traits
+    /** @name Taversal Category Traits
      * These traits classify graph types by their supported methods of
      * vertex and edge traversal.
      */

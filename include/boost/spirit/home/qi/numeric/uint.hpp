@@ -235,11 +235,11 @@ namespace boost { namespace spirit { namespace qi
           , typename Skipper, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
           , Context& /*context*/, Skipper const& skipper
-          , Attribute& attr_) const
+          , Attribute& attr) const
         {
             typedef extract_uint<T, Radix, MinDigits, MaxDigits> extract;
             qi::skip_over(first, last, skipper);
-            return extract::call(first, last, attr_);
+            return extract::call(first, last, attr);
         }
 
         template <typename Context>
@@ -273,7 +273,7 @@ namespace boost { namespace spirit { namespace qi
           , typename Skipper, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
           , Context& /*context*/, Skipper const& skipper
-          , Attribute& attr_param) const
+          , Attribute& attr) const
         {
             typedef extract_uint<T, Radix, MinDigits, MaxDigits> extract;
             qi::skip_over(first, last, skipper);
@@ -283,7 +283,7 @@ namespace boost { namespace spirit { namespace qi
 
             if (extract::call(first, last, attr_) && (attr_ == n_))
             {
-                traits::assign_to(attr_, attr_param);
+                traits::assign_to(attr_, attr);
                 return true;
             }
 

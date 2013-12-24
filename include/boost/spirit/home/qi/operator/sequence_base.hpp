@@ -60,8 +60,8 @@ namespace boost { namespace spirit { namespace qi
             type;
         };
 
-        sequence_base(Elements const& elements_)
-          : elements(elements_) {}
+        sequence_base(Elements const& elements)
+          : elements(elements) {}
 
         // standard case. Attribute is a fusion tuple
         template <typename Iterator, typename Context
@@ -81,10 +81,10 @@ namespace boost { namespace spirit { namespace qi
                     traits::one_element_sequence<attr_type_>
                   , mpl::not_<traits::one_element_sequence<Attribute> >
                 >::type 
-            >::type attr_local(attr_);
+            >::type attr(attr_);
 
             // return false if *any* of the parsers fail
-            if (spirit::any_if(elements, attr_local
+            if (spirit::any_if(elements, attr
               , Derived::fail_function(iter, last, context, skipper), predicate()))
                 return false;
             first = iter;
@@ -118,9 +118,9 @@ namespace boost { namespace spirit { namespace qi
           , typename Skipper, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
           , Context& context, Skipper const& skipper
-          , Attribute& attr_) const
+          , Attribute& attr) const
         {
-            return parse_impl(first, last, context, skipper, attr_
+            return parse_impl(first, last, context, skipper, attr
               , traits::is_container<Attribute>());
         }
 

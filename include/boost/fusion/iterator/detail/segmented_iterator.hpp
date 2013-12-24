@@ -19,7 +19,7 @@
 
 namespace boost { namespace fusion
 {
-    struct nil_;
+    struct nil;
 
     namespace detail
     {

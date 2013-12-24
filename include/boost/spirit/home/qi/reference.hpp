@@ -38,9 +38,9 @@ namespace boost { namespace spirit { namespace qi
           , typename Skipper, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
           , Context& context, Skipper const& skipper
-          , Attribute& attr_) const
+          , Attribute& attr) const
         {
-            return ref.get().parse(first, last, context, skipper, attr_);
+            return ref.get().parse(first, last, context, skipper, attr);
         }
 
         template <typename Context>

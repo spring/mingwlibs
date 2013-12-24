@@ -43,8 +43,8 @@ namespace boost { namespace spirit { namespace qi
             typedef unused_type type;
         };
 
-        and_predicate(Subject const& subject_)
-          : subject(subject_) {}
+        and_predicate(Subject const& subject)
+          : subject(subject) {}
 
         template <typename Iterator, typename Context
           , typename Skipper, typename Attribute>

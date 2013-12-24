@@ -13,7 +13,7 @@ namespace boost { namespace fusion
 {
     struct cons_tag;
 
-    struct nil_;
+    struct nil;
 
     template <typename Car, typename Cdr>
     struct cons;
@@ -28,7 +28,7 @@ namespace boost { namespace fusion
         {
             template <typename Sequence>
             struct apply
-                : boost::is_convertible<Sequence, nil_>
+                : boost::is_convertible<Sequence, nil>
             {};
         };
     }

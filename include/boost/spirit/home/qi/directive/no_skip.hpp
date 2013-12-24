@@ -45,8 +45,8 @@ namespace boost { namespace spirit { namespace qi
     struct no_skip_directive : unary_parser<no_skip_directive<Subject> >
     {
         typedef Subject subject_type;
-        no_skip_directive(Subject const& subject_)
-          : subject(subject_) {}
+        no_skip_directive(Subject const& subject)
+          : subject(subject) {}
 
         template <typename Context, typename Iterator>
         struct attribute
@@ -60,10 +60,10 @@ namespace boost { namespace spirit { namespace qi
           , typename Skipper, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
           , Context& context, Skipper const& skipper
-          , Attribute& attr_) const
+          , Attribute& attr) const
         {
             return subject.parse(first, last, context
-              , detail::unused_skipper<Skipper>(skipper), attr_);
+              , detail::unused_skipper<Skipper>(skipper), attr);
         }
 
         template <typename Context>

@@ -53,8 +53,8 @@ namespace boost { namespace spirit { namespace qi
           , traits::attribute_of<subject_type> >::type 
         transformed_attribute_type;
 
-        attr_cast_parser(Subject const& subject_)
-          : subject(subject_)
+        attr_cast_parser(Subject const& subject)
+          : subject(subject) 
         {
             // If you got an error_invalid_expression error message here,
             // then the expression (Subject) is not a valid spirit qi
@@ -75,7 +75,7 @@ namespace boost { namespace spirit { namespace qi
           , typename Attribute>
         bool parse(Iterator& first, Iterator const& last
           , Context& context, Skipper const& skipper
-          , Attribute& attr_param) const
+          , Attribute& attr) const
         {
             // Find the real exposed attribute. If exposed is given, we use it
             // otherwise we assume the exposed attribute type to be the actual
@@ -90,18 +90,18 @@ namespace boost { namespace spirit { namespace qi
                 exposed_attribute_type, transformed_attribute_type, domain> 
             transform;
 
-            typename transform::type attr_ = transform::pre(attr_param);
+            typename transform::type attr_ = transform::pre(attr);
 
             if (!compile<qi::domain>(subject).
                     parse(first, last, context, skipper, attr_))
             {
-                transform::fail(attr_param);
+                transform::fail(attr);
                 return false;
             }
 
             // do up-stream transformation, this mainly integrates the results
             // back into the original attribute value, if appropriate
-            traits::post_transform(attr_param, attr_);
+            traits::post_transform(attr, attr_);
             return true;
         }
 

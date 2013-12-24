@@ -191,17 +191,18 @@ namespace boost
             struct entry_manager
             {
                 entry_ptr const entry;
-                boost::mutex& internal_mutex;
 
                 BOOST_THREAD_NO_COPYABLE(entry_manager)
-                entry_manager(entry_ptr const& entry_, boost::mutex& mutex_):
-                    entry(entry_), internal_mutex(mutex_)
+                entry_manager(entry_ptr const& entry_):
+                    entry(entry_)
                 {}
 
                 ~entry_manager()
                 {
-                    boost::lock_guard<boost::mutex> internal_lock(internal_mutex);
+                  //if(! entry->is_notified()) // several regression #7657
+                  {
                     entry->remove_waiter();
+                  }
                 }
 
                 list_entry* operator->()
@@ -217,7 +218,7 @@ namespace boost
             {
                 relocker<lock_type> locker(lock);
 
-                entry_manager entry(get_wait_entry(), internal_mutex);
+                entry_manager entry(get_wait_entry());
 
                 locker.unlock();
 
@@ -365,11 +366,7 @@ namespace boost
                 const chrono::time_point<Clock, Duration>& t)
         {
           using namespace chrono;
-          chrono::time_point<Clock, Duration> now = Clock::now();
-          if (t<=now) {
-            return cv_status::timeout;
-          }
-          do_wait(lock, ceil<milliseconds>(t-now).count());
+          do_wait(lock, ceil<milliseconds>(t-Clock::now()).count());
           return Clock::now() < t ? cv_status::no_timeout :
                                              cv_status::timeout;
         }
@@ -381,10 +378,6 @@ namespace boost
                 const chrono::duration<Rep, Period>& d)
         {
           using namespace chrono;
-          if (d<=chrono::duration<Rep, Period>::zero()) {
-            return cv_status::timeout;
-          }
-
           steady_clock::time_point c_now = steady_clock::now();
           do_wait(lock, ceil<milliseconds>(d).count());
           return steady_clock::now() - c_now < d ? cv_status::no_timeout :
@@ -486,11 +479,7 @@ namespace boost
                 const chrono::time_point<Clock, Duration>& t)
         {
           using namespace chrono;
-          chrono::time_point<Clock, Duration> now = Clock::now();
-          if (t<=now) {
-            return cv_status::timeout;
-          }
-          do_wait(lock, ceil<milliseconds>(t-now).count());
+          do_wait(lock, ceil<milliseconds>(t-Clock::now()).count());
           return Clock::now() < t ? cv_status::no_timeout :
                                              cv_status::timeout;
         }
@@ -502,9 +491,6 @@ namespace boost
                 const chrono::duration<Rep, Period>& d)
         {
           using namespace chrono;
-          if (d<=chrono::duration<Rep, Period>::zero()) {
-            return cv_status::timeout;
-          }
           steady_clock::time_point c_now = steady_clock::now();
           do_wait(lock, ceil<milliseconds>(d).count());
           return steady_clock::now() - c_now < d ? cv_status::no_timeout :

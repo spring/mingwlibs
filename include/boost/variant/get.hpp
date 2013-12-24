@@ -17,7 +17,6 @@
 
 #include "boost/config.hpp"
 #include "boost/detail/workaround.hpp"
-#include "boost/throw_exception.hpp"
 #include "boost/utility/addressof.hpp"
 #include "boost/variant/variant_fwd.hpp"
 
@@ -42,7 +41,7 @@ class bad_get
 {
 public: // std::exception implementation
 
-    virtual const char * what() const BOOST_NOEXCEPT_OR_NOTHROW
+    virtual const char * what() const throw()
     {
         return "boost::bad_get: "
                "failed value get using boost::get";
@@ -178,7 +177,7 @@ get(
     U_ptr result = get<U>(&operand);
 
     if (!result)
-        boost::throw_exception(bad_get());
+        throw bad_get();
     return *result;
 }
 
@@ -194,7 +193,7 @@ get(
     U_ptr result = get<const U>(&operand);
 
     if (!result)
-        boost::throw_exception(bad_get());
+        throw bad_get();
     return *result;
 }
 

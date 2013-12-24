@@ -56,8 +56,8 @@ namespace boost { namespace spirit { namespace qi
             type;
         };
 
-        kleene(Subject const& subject_)
-          : subject(subject_) {}
+        kleene(Subject const& subject)
+          : subject(subject) {}
 
         template <typename F>
         bool parse_container(F f) const
@@ -71,17 +71,17 @@ namespace boost { namespace spirit { namespace qi
           , typename Skipper, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
           , Context& context, Skipper const& skipper
-          , Attribute& attr_) const
+          , Attribute& attr) const
         {
             // ensure the attribute is actually a container type
-            traits::make_container(attr_);
+            traits::make_container(attr);
 
             typedef detail::fail_function<Iterator, Context, Skipper>
                 fail_function;
 
             Iterator iter = first;
             fail_function f(iter, last, context, skipper);
-            parse_container(detail::make_pass_container(f, attr_));
+            parse_container(detail::make_pass_container(f, attr));
 
             first = f.first;
             return true;

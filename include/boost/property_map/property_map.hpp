@@ -13,7 +13,6 @@
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
-#include <boost/static_assert.hpp>
 #include <boost/pending/cstddef.hpp>
 #include <boost/detail/iterator.hpp>
 #include <boost/concept_check.hpp>
@@ -148,7 +147,6 @@ namespace boost {
 #else
   template <class T>
   struct property_traits<T*> {
-    // BOOST_STATIC_ASSERT(boost::is_same<T, T*>::value && !"Using pointers as property maps is deprecated");
     typedef T value_type;
     typedef value_type& reference;
     typedef std::ptrdiff_t key_type;
@@ -156,7 +154,6 @@ namespace boost {
   };
   template <class T>
   struct property_traits<const T*> {
-    // BOOST_STATIC_ASSERT(boost::is_same<T, T*>::value && !"Using pointers as property maps is deprecated");
     typedef T value_type;
     typedef const value_type& reference;
     typedef std::ptrdiff_t key_type;

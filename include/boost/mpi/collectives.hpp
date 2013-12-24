@@ -19,10 +19,10 @@
 #define BOOST_MPI_COLLECTIVES_HPP
 
 #include <boost/mpi/communicator.hpp>
-#include <boost/mpi/inplace.hpp>
 #include <vector>
 
 namespace boost { namespace mpi {
+
 /**
  *  @brief Gather the values stored at every process into vectors of
  *  values from each process.
@@ -94,14 +94,11 @@ all_gather(const communicator& comm, const T* in_values, int n, T* out_values);
  *
  *    @param comm The communicator over which the reduction will
  *    occur.
- *    @param value The local value to be combined with the local
+ *
+ *    @param in_value The local value to be combined with the local
  *    values of every other process. For reducing arrays, @c in_values
  *    is a pointer to the local values to be reduced and @c n is the
  *    number of values to reduce. See @c reduce for more information.
- *
- *    If wrapped in a @c inplace_t object, combine the usage of both
- *    input and $c out_value and the local value will be overwritten
- *    (a convenience function @c inplace is provided for the wrapping).
  *
  *    @param out_value Will receive the result of the reduction
  *    operation. If this parameter is omitted, the outgoing value will
@@ -119,39 +116,26 @@ all_gather(const communicator& comm, const T* in_values, int n, T* out_values);
  *    gives the implementation additional lattitude to optimize the
  *    reduction operation.
  *
- *    @param n Indicated the size of the buffers of array type.
  *    @returns If no @p out_value parameter is supplied, returns the
  *    result of the reduction operation.
  */
 template<typename T, typename Op>
 void
-all_reduce(const communicator& comm, const T* value, int n, T* out_value, 
-           Op op);
+all_reduce(const communicator& comm, const T& in_value, T& out_value, Op op);
+
 /**
  * \overload
  */
 template<typename T, typename Op>
-void
-all_reduce(const communicator& comm, const T& value, T& out_value, Op op);
-/**
- * \overload
- */
-template<typename T, typename Op>
-T all_reduce(const communicator& comm, const T& value, Op op);
+T all_reduce(const communicator& comm, const T& in_value, Op op);
 
 /**
  * \overload
  */
 template<typename T, typename Op>
 void
-all_reduce(const communicator& comm, inplace_t<T*> value, int n,
+all_reduce(const communicator& comm, const T* in_values, int n, T* out_values, 
            Op op);
-/**
- * \overload
- */
-template<typename T, typename Op>
-void
-all_reduce(const communicator& comm, inplace_t<T> value, Op op);
 
 /**
  *  @brief Send data from every process to every other process.

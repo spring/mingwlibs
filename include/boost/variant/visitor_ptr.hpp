@@ -18,7 +18,6 @@
 
 #include "boost/mpl/eval_if.hpp"
 #include "boost/mpl/identity.hpp"
-#include "boost/throw_exception.hpp"
 #include "boost/type_traits/add_reference.hpp"
 #include "boost/type_traits/is_reference.hpp"
 #include "boost/type_traits/is_void.hpp"
@@ -65,7 +64,7 @@ public: // static visitor interfaces
     template <typename U>
     result_type operator()(const U&) const
     {
-        boost::throw_exception(bad_visit());
+        throw bad_visit();
     }
 
 #if !defined(BOOST_NO_VOID_RETURNS)

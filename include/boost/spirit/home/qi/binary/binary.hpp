@@ -241,7 +241,7 @@ namespace boost { namespace spirit { namespace qi
           , typename Skipper, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
           , Context& /*context*/, Skipper const& skipper
-          , Attribute& attr_param) const
+          , Attribute& attr) const
         {
             qi::skip_over(first, last, skipper);
 
@@ -257,7 +257,7 @@ namespace boost { namespace spirit { namespace qi
             }
 
             first = it;
-            spirit::traits::assign_to(attr_, attr_param);
+            spirit::traits::assign_to(attr_, attr);
             return true;
         }
 
@@ -280,14 +280,14 @@ namespace boost { namespace spirit { namespace qi
             typedef unused_type type;
         };
 
-        binary_lit_parser(V n_)
-          : n(n_) {}
+        binary_lit_parser(V n)
+          : n(n) {}
 
         template <typename Iterator, typename Context
           , typename Skipper, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
           , Context& /*context*/, Skipper const& skipper
-          , Attribute& attr_param) const
+          , Attribute& attr) const
         {
             qi::skip_over(first, last, skipper);
 
@@ -317,7 +317,7 @@ namespace boost { namespace spirit { namespace qi
             }
 
             first = it;
-            spirit::traits::assign_to(attr_, attr_param);
+            spirit::traits::assign_to(attr_, attr);
             return true;
         }
 

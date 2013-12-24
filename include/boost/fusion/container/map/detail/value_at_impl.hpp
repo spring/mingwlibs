@@ -1,11 +1,12 @@
 /*=============================================================================
-    Copyright (c) 2001-2013 Joel de Guzman
+    Copyright (c) 2001-2011 Joel de Guzman
+    Copyright (c) 2011 Brandon Kohn
 
-    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    Distributed under the Boost Software License, Version 1.0. (See accompanying 
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ==============================================================================*/
-#if !defined(BOOST_FUSION_MAP_DETAIL_VALUE_AT_IMPL_02042013_0821)
-#define BOOST_FUSION_MAP_DETAIL_VALUE_AT_IMPL_02042013_0821
+#if !defined(BOOST_FUSION_MAP_DETAIL_VALUE_AT_IMPL_HPP)
+#define BOOST_FUSION_MAP_DETAIL_VALUE_AT_IMPL_HPP
 
 #include <boost/mpl/at.hpp>
 
@@ -22,16 +23,12 @@ namespace boost { namespace fusion
         struct value_at_impl<map_tag>
         {
             template <typename Sequence, typename N>
-            struct apply
+            struct apply 
             {
-                typedef mpl::int_<N::value> index;
-                typedef
-                    decltype(std::declval<Sequence>().get_val(index()))
-                type;
+                typedef typename mpl::at<typename Sequence::storage_type::types, N>::type type;
             };
         };
     }
 }}
 
-#endif
-
+#endif //BOOST_FUSION_MAP_DETAIL_VALUE_AT_IMPL_HPP

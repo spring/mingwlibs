@@ -24,12 +24,12 @@ namespace boost { namespace fusion { namespace detail
     template <typename First, typename Last>
     struct build_cons<First, Last, true>
     {
-        typedef nil_ type;
+        typedef nil type;
         
-        static nil_
+        static nil
         call(First const&, Last const&)
         {
-            return nil_();
+            return nil();
         }
     };
 

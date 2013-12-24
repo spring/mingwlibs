@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 //
-// (C) Copyright Ion Gaztanaga  2007-2013
+// (C) Copyright Ion Gaztanaga  2007-2012
 //
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
@@ -26,15 +26,12 @@ namespace intrusive {
 
 /// @cond
 
-//typedef void default_tag;
 struct default_tag;
 struct member_tag;
 
 namespace detail{
 
 struct default_hook_tag{};
-
-#ifndef BOOST_INTRUSIVE_DOXYGEN_INVOKED
 
 #define BOOST_INTRUSIVE_DEFAULT_HOOK_MARKER_DEFINITION(BOOST_INTRUSIVE_DEFAULT_HOOK_MARKER) \
 struct BOOST_INTRUSIVE_DEFAULT_HOOK_MARKER : public default_hook_tag\
@@ -46,32 +43,19 @@ struct BOOST_INTRUSIVE_DEFAULT_HOOK_MARKER : public default_hook_tag\
 
 BOOST_INTRUSIVE_DEFAULT_HOOK_MARKER_DEFINITION(default_list_hook);
 BOOST_INTRUSIVE_DEFAULT_HOOK_MARKER_DEFINITION(default_slist_hook);
-BOOST_INTRUSIVE_DEFAULT_HOOK_MARKER_DEFINITION(default_rbtree_hook);
-BOOST_INTRUSIVE_DEFAULT_HOOK_MARKER_DEFINITION(default_hashtable_hook);
-BOOST_INTRUSIVE_DEFAULT_HOOK_MARKER_DEFINITION(default_avltree_hook);
-BOOST_INTRUSIVE_DEFAULT_HOOK_MARKER_DEFINITION(default_bstree_hook);
-//BOOST_INTRUSIVE_DEFAULT_HOOK_MARKER_DEFINITION(default_splaytree_hook);
-//BOOST_INTRUSIVE_DEFAULT_HOOK_MARKER_DEFINITION(default_sgtree_hook);
-//BOOST_INTRUSIVE_DEFAULT_HOOK_MARKER_DEFINITION(default_treap_hook);
+BOOST_INTRUSIVE_DEFAULT_HOOK_MARKER_DEFINITION(default_set_hook);
+BOOST_INTRUSIVE_DEFAULT_HOOK_MARKER_DEFINITION(default_uset_hook);
+BOOST_INTRUSIVE_DEFAULT_HOOK_MARKER_DEFINITION(default_avl_set_hook);
+BOOST_INTRUSIVE_DEFAULT_HOOK_MARKER_DEFINITION(default_splay_set_hook);
+BOOST_INTRUSIVE_DEFAULT_HOOK_MARKER_DEFINITION(default_bs_set_hook);
 
 #undef BOOST_INTRUSIVE_DEFAULT_HOOK_MARKER_DEFINITION
-
-#endif   //BOOST_INTRUSIVE_DOXYGEN_INVOKED
 
 template <class ValueTraits>
 struct eval_value_traits
 {
    typedef typename ValueTraits::value_traits type;
 };
-
-template<class ValueTraits>
-struct get_real_value_traits
-   : public eval_if_c
-      < external_value_traits_bool_is_true<ValueTraits>::value
-      , eval_value_traits<ValueTraits>
-      , identity<ValueTraits>
-      >
-{};
 
 template <class BucketTraits>
 struct eval_bucket_traits
@@ -82,36 +66,29 @@ struct eval_bucket_traits
 template <class T, class BaseHook>
 struct concrete_hook_base_value_traits
 {
-   typedef typename BaseHook::hooktags tags;
-   typedef bhtraits
+   typedef typename BaseHook::boost_intrusive_tags tags;
+   typedef detail::base_hook_traits
       < T
       , typename tags::node_traits
       , tags::link_mode
       , typename tags::tag
-      , tags::type> type;
+      , tags::hook_type> type;
 };
 
 template <class BaseHook>
 struct concrete_hook_base_node_traits
-{  typedef typename BaseHook::hooktags::node_traits type;  };
+{  typedef typename BaseHook::boost_intrusive_tags::node_traits type;  };
 
-template <class T, class AnyToSomeHook_ProtoValueTraits>
+template <class T, class BaseHook>
 struct any_hook_base_value_traits
 {
-   //AnyToSomeHook value_traits derive from a generic_hook
-   //The generic_hook is configured with any_node_traits
-   //and AnyToSomeHook::value_traits with the correct
-   //node traits for the container, so use node_traits
-   //from AnyToSomeHook_ProtoValueTraits and the rest of
-   //elements from the hooktags member of the generic_hook
-   typedef AnyToSomeHook_ProtoValueTraits proto_value_traits;
-   typedef bhtraits
+   typedef typename BaseHook::boost_intrusive_tags tags;
+   typedef detail::base_hook_traits
       < T
-      , typename proto_value_traits::node_traits
-      , proto_value_traits::hooktags::link_mode
-      , typename proto_value_traits::hooktags::tag
-      , proto_value_traits::hooktags::type
-      > type;
+      , typename BaseHook::node_traits
+      , tags::link_mode
+      , typename tags::tag
+      , tags::hook_type> type;
 };
 
 template <class BaseHook>
@@ -158,7 +135,6 @@ struct get_value_traits
       ,detail::apply<SupposedValueTraits, T>
       ,detail::identity<SupposedValueTraits>
    >::type supposed_value_traits;
-
    //...if it's a default hook
    typedef typename detail::eval_if_c
       < internal_base_hook_bool_is_true<supposed_value_traits>::value
@@ -202,6 +178,16 @@ struct get_node_traits
 };
 
 }  //namespace detail{
+
+
+//!This type indicates that no option is being used
+//!and that the default options should be used
+struct none
+{
+    template<class Base>
+    struct pack : Base
+    { };
+};
 
 /// @endcond
 
@@ -324,7 +310,7 @@ struct value_traits
     template<class Base>
     struct pack : Base
     {
-        typedef ValueTraits proto_value_traits;
+        typedef ValueTraits value_traits;
     };
 /// @endcond
 };
@@ -337,22 +323,7 @@ template< typename Parent
 struct member_hook
 {
 /// @cond
-/*
-   typedef typename MemberHook::hooktags::node_traits node_traits;
-   typedef typename node_traits::node node_type;
-   typedef node_type Parent::* Ptr2MemNode;
-   typedef mhtraits
-      < Parent
-      , node_traits
-      //This cast is really ugly but necessary to reduce template bloat.
-      //Since we control the layout between the hook and the node, and there is
-      //always single inheritance, the offset of the node is exactly the offset of
-      //the hook. Since the node type is shared between all member hooks, this saves
-      //quite a lot of symbol stuff.
-      , (Ptr2MemNode)PtrToMember 
-      , MemberHook::hooktags::link_mode> member_value_traits;
-*/
-   typedef mhtraits
+   typedef detail::member_hook_traits
       < Parent
       , MemberHook
       , PtrToMember
@@ -360,7 +331,7 @@ struct member_hook
    template<class Base>
    struct pack : Base
    {
-      typedef member_value_traits proto_value_traits;
+      typedef member_value_traits value_traits;
    };
 /// @endcond
 };
@@ -373,12 +344,12 @@ template< typename Functor>
 struct function_hook
 {
 /// @cond
-   typedef fhtraits
+   typedef detail::function_hook_traits
       <Functor> function_value_traits;
    template<class Base>
    struct pack : Base
    {
-      typedef function_value_traits proto_value_traits;
+      typedef function_value_traits value_traits;
    };
 /// @endcond
 };
@@ -393,7 +364,7 @@ struct base_hook
    template<class Base>
    struct pack : Base
    {
-      typedef BaseHook proto_value_traits;
+      typedef BaseHook value_traits;
    };
 /// @endcond
 };
@@ -608,13 +579,6 @@ struct incremental
 
 /// @cond
 
-struct none
-{
-   template<class Base>
-   struct pack : Base
-   {};
-};
-
 //To-do: pass to variadic templates
 #if !defined(BOOST_INTRUSIVE_VARIADIC_TEMPLATES)
 
@@ -626,25 +590,25 @@ struct do_pack
 };
 
 template<class Prev>
-struct do_pack<Prev, void>
+struct do_pack<Prev, none>
 {
-   //Avoid packing "void" to shorten template names
+   //Avoid packing "none" to shorten template names
    typedef Prev type;
 };
 
 template
    < class DefaultOptions
-   , class O1         = void
-   , class O2         = void
-   , class O3         = void
-   , class O4         = void
-   , class O5         = void
-   , class O6         = void
-   , class O7         = void
-   , class O8         = void
-   , class O9         = void
-   , class O10        = void
-   , class O11        = void
+   , class O1         = none
+   , class O2         = none
+   , class O3         = none
+   , class O4         = none
+   , class O5         = none
+   , class O6         = none
+   , class O7         = none
+   , class O8         = none
+   , class O9         = none
+   , class O10        = none
+   , class O11        = none
    >
 struct pack_options
 {
@@ -820,15 +784,17 @@ struct pack_options
 #endif
 
 struct hook_defaults
-{
-   typedef void* void_pointer;
-   static const link_mode_type link_mode = safe_link;
-   typedef default_tag tag;
-   static const bool optimize_size = false;
-   static const bool store_hash = false;
-   static const bool linear = false;
-   static const bool optimize_multikey = false;
-};
+   :  public pack_options
+      < none
+      , void_pointer<void*>
+      , link_mode<safe_link>
+      , tag<default_tag>
+      , optimize_size<false>
+      , store_hash<false>
+      , linear<false>
+      , optimize_multikey<false>
+      >::type
+{};
 
 /// @endcond
 

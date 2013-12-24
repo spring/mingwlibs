@@ -14,7 +14,7 @@
 #ifndef BOOST_CONTAINER_DETAIL_TRANSFORM_ITERATORS_HPP
 #define BOOST_CONTAINER_DETAIL_TRANSFORM_ITERATORS_HPP
 
-#if defined(_MSC_VER)
+#if (defined _MSC_VER) && (_MSC_VER >= 1200)
 #  pragma once
 #endif
 

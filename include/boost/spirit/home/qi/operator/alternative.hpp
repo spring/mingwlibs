@@ -63,17 +63,17 @@ namespace boost { namespace spirit { namespace qi
             type;
         };
 
-        alternative(Elements const& elements_)
-          : elements(elements_) {}
+        alternative(Elements const& elements)
+          : elements(elements) {}
 
         template <typename Iterator, typename Context
           , typename Skipper, typename Attribute>
         bool parse(Iterator& first, Iterator const& last
           , Context& context, Skipper const& skipper
-          , Attribute& attr_) const
+          , Attribute& attr) const
         {
             detail::alternative_function<Iterator, Context, Skipper, Attribute>
-                f(first, last, context, skipper, attr_);
+                f(first, last, context, skipper, attr);
 
             // return true if *any* of the parsers succeed
             return fusion::any(elements, f);
