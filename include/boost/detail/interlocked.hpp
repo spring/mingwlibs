@@ -21,8 +21,6 @@
 
 #if defined( BOOST_USE_WINDOWS_H )
 
-# include <windows.h>
-
 # define BOOST_INTERLOCKED_INCREMENT InterlockedIncrement
 # define BOOST_INTERLOCKED_DECREMENT InterlockedDecrement
 # define BOOST_INTERLOCKED_COMPARE_EXCHANGE InterlockedCompareExchange
@@ -30,6 +28,8 @@
 # define BOOST_INTERLOCKED_EXCHANGE_ADD InterlockedExchangeAdd
 # define BOOST_INTERLOCKED_COMPARE_EXCHANGE_POINTER InterlockedCompareExchangePointer
 # define BOOST_INTERLOCKED_EXCHANGE_POINTER InterlockedExchangePointer
+
+# include <windows.h>
 
 #elif defined(_WIN32_WCE)
 
