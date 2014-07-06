@@ -19,19 +19,14 @@ ASSIMP_HEADERS="math/common_factor smart_ptr"
 BOOST_HEADERS="${SPRING_HEADERS} ${ASSIMP_HEADERS}"
 BOOST_CONF=${BOOST_BUILD_DIR}/user-config.jam
 
+set +e
+## disable fetch by emerge as it requires access to the portage group (which buildbot doesn't have)
+# EMERGE=$(which emerge)
+set -e
+
 # x86 or x86_64
 MINGW_GPP=/usr/bin/i686-w64-mingw32-g++
 GCC_VERSION=$(${MINGW_GPP} -dumpversion)
-
-set +e
-EMERGE=$(which emerge)
-set -e
-
-if [ -n "$EMERGE" ]; then
-	# jk1 buildslave's mingw64 install is broken
-	MINGW_GPP=/usr/bin/i686-mingw32-g++
-	GCC_VERSION=$(${MINGW_GPP} -dumpversion)
-fi
 
 BOOST_LIBS_ARG=""
 for LIB in $BOOST_LIBS
