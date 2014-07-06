@@ -24,10 +24,10 @@ MINGW_GPP=/usr/bin/i686-w64-mingw32-g++
 GCC_VERSION=$(${MINGW_GPP} -dumpversion)
 
 set +e
-IS_GENTOO=$(which emerge)
+EMERGE=$(which emerge)
 set -e
 
-if [ -n "$IS_GENTOO" ]; then
+if [ -n "$EMERGE" ]; then
 	# jk1 buildslave's mingw64 install is broken
 	MINGW_GPP=/usr/bin/i686-mingw32-g++
 	GCC_VERSION=$(${MINGW_GPP} -dumpversion)
@@ -72,10 +72,6 @@ mkdir -p ${MINGWLIBS_DIR}include/boost/
 # Gentoo related - retrieve boost's tarball
 echo -e "\n---------------------------------------------------"
 echo "-- fetching boost's tarball"
-
-set +e
-EMERGE=$(which emerge)
-set -e
 
 if [ -n "$EMERGE" ] && [ -x "$EMERGE" ]; then
 	$EMERGE boost --fetchonly &>/dev/null
