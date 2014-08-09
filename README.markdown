@@ -135,7 +135,7 @@ and optionally mention the new version in the list below.
 
 	compiled with https://github.com/abma/pr-downloader/blob/73acf328d6f9b68a9b9ffe33eb2db3c1a7ab45df/scripts/crosscompile.sh
 
-* __OpenAL Soft__ 1.11
+* __OpenAL Soft__ 1.15
 
 	<http://kcat.strangesoft.net/openal.html>
 
