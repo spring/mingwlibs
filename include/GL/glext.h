@@ -774,7 +774,7 @@ GLAPI void APIENTRY glGetVertexAttribPointerv (GLuint index, GLenum pname, void 
 GLAPI GLboolean APIENTRY glIsProgram (GLuint program);
 GLAPI GLboolean APIENTRY glIsShader (GLuint shader);
 GLAPI void APIENTRY glLinkProgram (GLuint program);
-GLAPI void APIENTRY glShaderSource (GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length);
+GLAPI void APIENTRY glShaderSource (GLuint shader, GLsizei count, const GLchar **string, const GLint *length);
 GLAPI void APIENTRY glUseProgram (GLuint program);
 GLAPI void APIENTRY glUniform1f (GLint location, GLfloat v0);
 GLAPI void APIENTRY glUniform2f (GLint location, GLfloat v0, GLfloat v1);
