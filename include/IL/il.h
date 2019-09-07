@@ -242,6 +242,7 @@ typedef long long unsigned int ILuint64;
 #define IL_UTX			0x0451  //!< Unreal (and Unreal Tournament) Texture - .utx extension
 #define IL_MP3			0x0452  //!< MPEG-1 Audio Layer 3 - .mp3 extension
 #define IL_KTX			0x0453  //!< Khronos Texture - .ktx extension
+#define IL_SCITEX       0x0454  //!< Scitex Continuous Tone - .ch, .ct, and .sct extensions
 
 
 #define IL_JASC_PAL     0x0475  //!< PaintShop Pro Palette
@@ -624,6 +625,7 @@ ILAPI void      ILAPIENTRY ilShutDown(void);
 ILAPI ILboolean ILAPIENTRY ilSurfaceToDxtcData(ILenum Format);
 ILAPI ILboolean ILAPIENTRY ilTexImage(ILuint Width, ILuint Height, ILuint Depth, ILubyte NumChannels, ILenum Format, ILenum Type, void *Data);
 ILAPI ILboolean ILAPIENTRY ilTexImageDxtc(ILint w, ILint h, ILint d, ILenum DxtFormat, const ILubyte* data);
+ILAPI ILboolean ILAPIENTRY ilTexImageSurface(ILuint Width, ILuint Height, ILuint Depth, ILubyte NumChannels, ILenum Format, ILenum Type, void *Data);
 ILAPI ILenum    ILAPIENTRY ilTypeFromExt(ILconst_string FileName);
 ILAPI ILboolean ILAPIENTRY ilTypeFunc(ILenum Mode);
 ILAPI ILboolean ILAPIENTRY ilLoadData(ILconst_string FileName, ILuint Width, ILuint Height, ILuint Depth, ILubyte Bpp);
